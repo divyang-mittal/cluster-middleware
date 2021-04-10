@@ -41,6 +41,7 @@ while(True):
 
 			if(msg.msg_type == 'Kill Success'):
 				printf("Job has been successfully killed: \n")
+				break
 
 		break
 

@@ -41,6 +41,7 @@ while(True):
 
 			if(msg.msg_type == 'Return Stats'):
 				printf("Stas of the job: \n" + msg.content)
+				break
 
 		break
 
