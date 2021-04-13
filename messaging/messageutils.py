@@ -9,12 +9,17 @@ import time
 
 from . import message
 from .network_params import BUFFER_SIZE
+from ..master.job import job_parser
 
 HEARTBEAT_REPLY_WAIT_SECONDS = 5
 PORT = 5005
 
+def send_message_with_file_path(msg_type, file_path, to, port, msg_socket=None, sender=None):
+    content = job_parser.make_job(file_path)
+    executable_file_path = content.executable
+    make_and_send_message(msg_type, content,executable_file_path, to, msg_socket, port, sender)
 
-def make_and_send_message(msg_type, content, file_path, to, msg_socket, port):
+def make_and_send_message(msg_type, content, file_path, to, msg_socket, port, sender=None):
     """Construct a message object with given attributes & send to address
 
     :param msg_type: str, one of the pre-defined message types
@@ -24,8 +29,12 @@ def make_and_send_message(msg_type, content, file_path, to, msg_socket, port):
     :param msg_socket: socket, via which to send the message
     :param port: int, port number on which message should be received
     """
+    # print("XXXXYYY")
     msg = message.Message(
-        msg_type=msg_type, content=content, file_path=file_path)
+        msg_type=msg_type, content=content, sender=sender, file_path=file_path)
+    # print(msg.sender)
+    # print(msg.file)
+    # print(msg.content)
     send_message(msg=msg, to=to, msg_socket=msg_socket, port=port)
 
 
@@ -70,6 +79,7 @@ def send_message(msg, to, msg_socket=None, port=PORT):
     :param port: Integer with port to be used for sending/receiving messages.
         Default is 5005.
     """
+    print(msg_socket)
     if msg_socket is None:
         msg_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 

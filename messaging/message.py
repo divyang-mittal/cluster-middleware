@@ -40,7 +40,7 @@ class Message(object):
                 BACKUP_UPDATE: None
     """
 
-    def __init__(self, msg_type, content=None, file_path=None, file=None):
+    def __init__(self, msg_type, content=None, file_path=None, file=None, sender=None):
         """Initializes Message object with type parameters and adds content.
 
         Args:
@@ -54,7 +54,7 @@ class Message(object):
         self.msg_type = msg_type
         self.content = content
 
-        self.sender = None
+        self.sender = sender
         self.file = file
         if file_path is not None:
             with open(file_path, 'rb') as file:
