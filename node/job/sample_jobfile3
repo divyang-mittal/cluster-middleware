@@ -1,5 +1,5 @@
 name: myjob1
-executable: /home/siddhant/Desktop/sem8/cluster-middleware/node/job/a.out
+executable: python /home/siddhant/Desktop/sem8/cluster-middleware/node/job/test.py
 priority: 5
 time_required: 20
 min_memory: 100

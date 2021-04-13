@@ -82,7 +82,7 @@ def job_exec_msg_handler(current_job, job_executable,
         # Child process
         # time.sleep(1)
         job_execution.execute_job(
-            current_job, execution_dst, current_job_directory,
+            current_job, current_job.executable, current_job_directory,
             execution_jobs_pid_dict, executing_jobs_required_times,
             executed_jobs_receipt_ids=executed_jobs_receipt_ids,
             self_ip=self_ip)
@@ -213,8 +213,8 @@ def executed_job_to_parent_msg_handler(msg, executed_jobs_receipt_ids,
         msg=msg,
         to=server_ip,
         msg_socket=None,
-        port=network_params.COMPUTE_NODE_SEND_PORT)
-    print('Sending executed job r_id=%d\n\n>>>' % msg.content.receipt_id,
+        port=network_params.SERVER_RECV_PORT)
+    print('Sending executed job id=%d' % msg.content.receipt_id,
           end=' ')
 
 

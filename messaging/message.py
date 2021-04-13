@@ -56,9 +56,9 @@ class Message(object):
 
         self.sender = sender
         self.file = file
-        if file_path is not None:
-            with open(file_path, 'rb') as file:
-                self.file = file.read()
+        # if file_path is not None:
+        #     with open(file_path, 'rb') as file:
+        #         self.file = file.read()
 
     def __str__(self):
         """Custom function to print message details.

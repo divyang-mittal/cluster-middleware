@@ -171,6 +171,7 @@ def main():
 
         if msg.msg_type == 'JOB_EXEC':
             # TODO: See if num_execution_jobs_recvd is useful anywhere
+            print('Job execute')
             new_job_id = msg.content.receipt_id
             try:
                 del executed_jobs_receipt_ids[new_job_id]
@@ -195,11 +196,12 @@ def main():
                 to=server_ip,
                 msg_socket=None,
                 port=network_params.SERVER_RECV_PORT)
+            print("Completed")
 
         elif msg.msg_type == 'JOB_PREEMPT_EXEC':
             print(
                 'Job Preemption for job r_id =', msg.content[1],
-                'received\n\n>>>', end=' ')
+                'received\n', end=' ')
             preempted_jobs_receipt_ids[msg.content[1]] = 0
             message_handlers.job_preemption_msg_handler(
                 msg=msg,
@@ -221,7 +223,7 @@ def main():
         elif msg.msg_type == 'JOB_KILL':
             print(
                 'Job Kill for job r_id =', msg.content,
-                'received\n\n>>>', end=' ')
+                'received', end=' ')
 
             message_handlers.job_kill_msg_handler(
                 msg=msg,
