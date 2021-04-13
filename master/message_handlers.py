@@ -164,7 +164,7 @@ def job_submit_handler(job_queue,
     #     return
 
     job.receipt_id = job_receipt_id
-    #job_sender[job_receipt_id] = received_msg.sender
+    job_sender[job_receipt_id] = received_msg.sender
     job_executable[job_receipt_id] = received_msg.file
 
     schedule_and_send_job(
@@ -252,12 +252,12 @@ def executed_job_handler(job_queue,
     if executed_job.completed:
 
         # Send completion result to initial node where job was created.
-        completed_job_msg = message.Message(
-            msg_type='SUBMITTED_JOB_COMPLETION', content=executed_job)
-        messageutils.send_message(
-            msg=completed_job_msg,
-            to=job_sender[executed_job.receipt_id],
-            port=SERVER_SEND_PORT)
+        # completed_job_msg = message.Message(
+        #     msg_type='SUBMITTED_JOB_COMPLETION', content=executed_job)
+        # messageutils.send_message(
+        #     msg=completed_job_msg,
+        #     to=job_sender[executed_job.receipt_id],
+        #     port=)
 
         del job_sender[executed_job.receipt_id]
         del job_executable[executed_job.receipt_id]
@@ -390,9 +390,9 @@ def schedule_and_send_job(job,
         {node_id: [list of jobs]}
     """
 
-   # # node_for_job, preempt_job = matchmaking.matchmaking(
-   # #     job=job, compute_nodes=compute_nodes, running_jobs=running_jobs)
-    node_for_job = "127.0.0.1"
+    node_for_job, preempt_job = matchmaking.matchmaking(
+        job=job, compute_nodes=compute_nodes, running_jobs=running_jobs)
+    # node_for_job = "127.0.0.1"
     # Job cannot be scheduled at the moment
     if node_for_job is None:
         job_queue.put(job)
@@ -402,17 +402,17 @@ def schedule_and_send_job(job,
     if job.first_response is None:
         job.first_response = time.time()
 
-    # if preempt_job is not None:
-    #     job_exec_msg = message.Message(
-    #         msg_type='JOB_PREEMPT_EXEC',
-    #         content=(job, preempt_job.receipt_id),
-    #         file=executable)
-    # else:
-    #     job_exec_msg = message.Message(
-    #         msg_type='JOB_EXEC', content=job, file=executable)
-
-    job_exec_msg = message.Message(
+    if preempt_job is not None:
+        job_exec_msg = message.Message(
+            msg_type='JOB_PREEMPT_EXEC',
+            content=(job, preempt_job.receipt_id),
+            file=executable)
+    else:
+        job_exec_msg = message.Message(
             msg_type='JOB_EXEC', content=job, file=executable)
+
+    # job_exec_msg = message.Message(
+            # msg_type='JOB_EXEC', content=job, file=executable)
 
 
     job_running_node[job.receipt_id] = node_for_job

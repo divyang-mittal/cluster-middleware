@@ -59,6 +59,7 @@ import pickle
 import select
 import socket
 import time
+import copy
 
 
 from . import message_handlers
@@ -210,6 +211,10 @@ def main():
                         #         received_msg=msg)
 
                         # else:
+                            print("\n\n\n")
+                            print(compute_nodes)
+                            print("\n\n\n")
+
                             message_handlers.heartbeat_handler(
                                 compute_nodes=compute_nodes,
                                 node_last_seen=node_last_seen,
@@ -291,47 +296,6 @@ def main():
                 else:
                     inputs.remove(msg_socket)
                     msg_socket.close()
-
-
-def node_crash_handler(compute_nodes,
-                       running_jobs,
-                       job_queue,
-                       job_executable,
-                       node_last_seen,
-                       received_msg):
-    """Handler function for NODE_CRASH messages.
-    Message received from child process of server. Reschedules all jobs that
-    were being executed on crashed nodes. Removes crashed nodes from the
-    compute_nodes dictionary.
-    :param job_queue: Priority queue for jobs that could not be scheduled.
-    :param compute_nodes: Dictionary with cpu usage and memory of each node
-        {node_id: status}
-    :param running_jobs: Dictionary with jobs running on each system
-        {node_id: [list of jobs]}
-    :param job_executable: Dictionary with job executables {job_id: executable}
-    :param node_last_seen: Dictionary with time when last heartbeat was
-        received from node {node_id: last_seen_time}
-    :param received_msg: message, received message.
-    """
-
-    crashed_nodes = received_msg.content
-    pre_crash_running_jobs = copy.deepcopy(running_jobs)
-
-    for node_id in crashed_nodes:
-        del compute_nodes[node_id]
-        del running_jobs[node_id]
-        del node_last_seen[node_id]
-
-    for node_id, running_jobs_list in pre_crash_running_jobs.items():
-        if node_id in crashed_nodes:
-            for job in running_jobs_list:
-                schedule_and_send_job(
-                    job=job,
-                    executable=job_executable[job.receipt_id],
-                    job_queue=job_queue,
-                    compute_nodes=compute_nodes,
-                    running_jobs=running_jobs)
-
 
 if __name__ == '__main__':
     main()
