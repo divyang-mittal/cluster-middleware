@@ -249,6 +249,7 @@ def job_kill_msg_handler(msg,
         del executing_jobs_receipt_ids[job_receipt_id]
     except OSError as err:
         if err.errno == errno.ESRCH:
+            pass
             # ESRCH: child process no longer exists
             # This implies that either this job was preempted, and this
             # preemption message is a duplicate from switched server, or
@@ -258,7 +259,7 @@ def job_kill_msg_handler(msg,
             # we resend the EXECUTED_JOB msg for safety.
             # Ideally, it should be not be possible to come to this section
             # due to initial check on executed_jobs_receipt_ids
-            resend_executed_job_msg(job_receipt_id, server_ip)
+            # resend_executed_job_msg(job_receipt_id, network_params.SERVER_RECV_PORT)
 
 
 def executed_job_to_parent_msg_handler(msg, executed_jobs_receipt_ids,

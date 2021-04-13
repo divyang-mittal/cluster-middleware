@@ -5,16 +5,16 @@ import psutil
 import argparse
 import sys
 sys.path.append("..")
-from messaging import network_params
-from messaging import message 
-from messaging import messageutils
+from ...messaging import network_params
+from ...messaging import message 
+from ...messaging import messageutils
 import getpass
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-k", "--Kill")
 
 args = parser.parse_args()
-username = getpass.getuser()
+# username = getpass.getuser()
 
 
 while(True):
@@ -23,27 +23,27 @@ while(True):
 		listen_address = ('', network_params.KILL_RECV_PORT)
 		listen_socket.bind(listen_address)
 		listen_socket.listen(5)
-		messageutils.make_and_send_message(msg_type = "JOB STATS" ,content = args.Kill, to = network_params.SERVER_IP, port = network_params.SERVER_PORT)
+		messageutils.make_and_send_message(msg_type = "KILL_JOB" ,content = args.Kill, to = network_params.SERVER_IP, port = network_params.SERVER_RECV_PORT, file_path =None, msg_socket=None)
  		
-		while True:
-			connection, client_address = listen_socket.accept()
+		
+		# connection, client_address = listen_socket.accept()
 
-			data_list = []
-			data = connection.recv(network_params.BUFFER_SIZE)
+		# data_list = []
+		# data = connection.recv(network_params.BUFFER_SIZE)
 			
-			while data:
-				data_list.append(data)
-				data = connection.recv(network_params.BUFFER_SIZE)	
-				data = b''.join(data_list)
+		# while data:
+		# 	data_list.append(data)
+		# 	data = connection.recv(network_params.BUFFER_SIZE)	
+		# data = b''.join(data_list)
 
-			msg = pickle.loads(data)
-			assert isinstance(msg, message.Message), "Can't specify the message type"
+		# msg = pickle.loads(data)
+		# assert isinstance(msg, message.Message), "Can't specify the message type"
 
-			if(msg.msg_type == 'Kill Success'):
-				printf("Job has been successfully killed: \n")
-				break
-
+		# if(msg.msg_type == 'Kill Success'):
+		# 	print("Job has been successfully killed: \n")
+		
 		break
+
 
 
 	except BrokenPipeError:

@@ -236,7 +236,7 @@ def main():
                 msg_socket=None,
                 port=network_params.SERVER_RECV_PORT)
 
-        elif msg.msg_type == 'JOB_KILL':
+        elif msg.msg_type == 'KILL_JOB':
             print(
                 'Job Kill for job r_id =', msg.content,
                 'received', end=' ')

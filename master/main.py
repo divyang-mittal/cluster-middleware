@@ -264,7 +264,7 @@ def main():
 
                     elif msg.msg_type == 'KILL_JOB':
                         message_handlers.kill_job_handler(
-                            received_msg=msg,
+                            job_receipt_id=int(msg.content),
                             running_jobs=running_jobs,
                             job_executable=job_executable,
                             job_sender=job_sender,
@@ -282,6 +282,10 @@ def main():
                         message_handlers.ack_ignore_handler()
 
                     elif msg.msg_type == 'ACK_SUBMITTED_JOB_COMPLETION':
+                        message_handlers.ack_ignore_handler()
+
+                    elif msg.msg_type == 'ACK_JOB_KILL_EXEC':
+                        print("KILLED JOB")
                         message_handlers.ack_ignore_handler()
 
                     elif msg.msg_type == 'NODE_CRASH':

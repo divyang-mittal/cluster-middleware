@@ -423,27 +423,26 @@ def schedule_and_send_job(job,
 
 
 def kill_job_handler(
-                    received_msg,
+                    job_receipt_id,
                     running_jobs,
                     job_executable,
                     job_sender,
                     job_running_node,
                     ):
 
-    job = received_msg.content
+    # job = received_msg.content
     kill_job_msg = message.Message(
-        msg_type = 'KILL_JOB', content=job, file=received_msg.file)
+        msg_type = 'KILL_JOB', content=job_receipt_id)
 
-    running_node = job_running_node[job.receipt_id]
+    running_node = job_running_node[job_receipt_id]
 
-
-    del job_sender[job.receipt_id]
-    del job_executable[job.receipt_id]
+    del job_sender[job_receipt_id]
+    del job_executable[job_receipt_id]
     
-    if job in running_jobs[running_node]:
-        running_jobs[running_node].remove(job)
-    messageutils.send_message(msg=kill_job_msg,to=running_node, port=SERVER_SEND_PORT)
-    print('SENDING KILL_JOB:', job.receipt_id)
+    # if job in running_jobs[running_node]:
+    #     running_jobs[running_node].remove(job)
+    messageutils.send_message(msg=kill_job_msg,to=running_node, port=network_params.COMPUTE_NODE_RECV_PORT)
+    print('SENDING KILL_JOB:', job_receipt_id)
 
 
 # def stats_job_handler(
