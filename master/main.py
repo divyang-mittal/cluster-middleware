@@ -272,7 +272,7 @@ def main():
                         )
                     
                         
-                    # elif msg.msg_type == 'JOB_STATS':
+                    elif msg.msg_type == 'STATS_JOB':
 
 
                     elif msg.msg_type == 'ACK_JOB_EXEC':

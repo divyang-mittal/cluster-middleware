@@ -80,12 +80,12 @@ def execute_job(current_job,
 
         # Prepare and send executed job information message to parent
         executed_jobs_receipt_ids[job_id] = 0
-        messageutils.make_and_send_message(
-            msg_type='EXECUTED_JOB_TO_PARENT',
-            content=current_job,
-            file_path=None, to=self_ip,
-            msg_socket=None,
-            port=network_params.COMPUTE_NODE_RECV_PORT)
+        # messageutils.make_and_send_message(
+        #     msg_type='EXECUTED_JOB_TO_PARENT',
+        #     content=current_job,
+        #     file_path=None, to=self_ip,
+        #     msg_socket=None,
+        #     port=network_params.COMPUTE_NODE_RECV_PORT)
         # Gracefully exit
         # noinspection PyProtectedMember
         os._exit(0)

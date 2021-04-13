@@ -10,39 +10,36 @@ from messaging import message
 from messaging import messageutils
 import getpass
 
-parser = argparse.ArgumentParser()
-parser.add_argument("-s", "--Stats")
+# parser = argparse.ArgumentParser()
+# parser.add_argument("-s", "--Stats")
 
-args = parser.parse_args()
-username = getpass.getuser()
+# args = parser.parse_args()
+# username = getpass.getuser()
 
 
 while(True):
 	try:
 		listen_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		listen_address = ('', network_params.STATS_RECV_PORT)
+		listen_address = ('', network_params.KILL_RECV_PORT)
 		listen_socket.bind(listen_address)
 		listen_socket.listen(5)
-		messageutils.make_and_send_message(msg_type = "JOB STATS" ,content = args.Stats, to = network_params.SERVER_IP, port = network_params.SERVER_PORT)
- 		
-		while True:
-			connection, client_address = listen_socket.accept()
+		messageutils.make_and_send_message(msg_type = "STATS_JOB" ,content=None, to = network_params.SERVER_IP, port = network_params.SERVER_RECV_PORT, file_path =None, msg_socket=None)
+		connection, client_address = listen_socket.accept()
 
-			data_list = []
-			data = connection.recv(network_params.BUFFER_SIZE)
+		data_list = []
+		data = connection.recv(network_params.BUFFER_SIZE)
 			
-			while data:
-				data_list.append(data)
-				data = connection.recv(network_params.BUFFER_SIZE)	
-				data = b''.join(data_list)
+		while data:
+			data_list.append(data)
+			data = connection.recv(network_params.BUFFER_SIZE)	
+		data = b''.join(data_list)
 
-			msg = pickle.loads(data)
-			assert isinstance(msg, message.Message), "Can't specify the message type"
+		msg = pickle.loads(data)
+		assert isinstance(msg, message.Message), "Can't specify the message type"
 
-			if(msg.msg_type == 'Return Stats'):
-				printf("Stas of the job: \n" + msg.content)
-				break
-
+		if(msg.msg_type == "STATS_SUCCESS'):
+			print("Job has been successfully sent: \n")
+			print(msg.content)
 		break
 
 
