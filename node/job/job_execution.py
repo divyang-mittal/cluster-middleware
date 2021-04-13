@@ -19,7 +19,7 @@ JOB_PICKLE_FILE = '/job.pickle'
 
 
 def execute_job(current_job,
-                execution_dst,
+                executable,
                 current_job_directory,
                 execution_jobs_pid_dict,
                 executing_jobs_required_times,
@@ -94,12 +94,17 @@ def execute_job(current_job,
     signal.signal(signal.SIGTERM, sigint_handler)
 
     # Elevate privileges
-    st = os.stat(execution_dst)
-    os.chmod(execution_dst, st.st_mode | stat.S_IEXEC)
+    # st = os.stat(execution_dst)
+    # os.chmod(execution_dst, st.st_mode | stat.S_IEXEC)
 
     # Begin execution
     # os.system(execution_dst)
-    subprocess.call([execution_dst])
+    # subprocess.call([execution_dst])
+    out_file = open(os.path.join(current_job_directory, f'out{job_id}.out'), 'w')
+    cmd = executable.split(' ')
+    print(cmd)
+    subprocess.run(cmd, stdout=out_file)
+    out_file.close()
     # Execution call completed
     end_time = time.time()
 

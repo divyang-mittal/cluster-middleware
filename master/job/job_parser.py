@@ -40,8 +40,6 @@ def parse_jobfile(jobfile_name):
                 "Invalid job description file: Missing fields found")
 
     # Check that executable exists
-    if not os.path.isfile(job_description_dict['executable']):
-        raise ValueError('Invalid job description file: Invalid execution path')
 
     return job_description_dict
 

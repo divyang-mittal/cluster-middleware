@@ -194,7 +194,6 @@ def job_submit_handler(job_queue,
     #     to=backup_ip,
     #     msg_socket=None,
     #     port=SERVER_SEND_PORT)
-    print("till here 1")
     messageutils.make_and_send_message(
         msg_type='ACK_JOB_SUBMIT',
         content=job.receipt_id,

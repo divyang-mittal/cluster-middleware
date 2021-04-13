@@ -271,7 +271,6 @@ def main():
 
 
                     elif msg.msg_type == 'ACK_JOB_EXEC':
-                        print("chal gya")
                         message_handlers.ack_ignore_handler()
 
                     elif msg.msg_type == 'ACK_JOB_EXEC_PREEMPT':
