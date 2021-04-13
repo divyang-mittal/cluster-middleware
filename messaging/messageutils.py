@@ -79,7 +79,7 @@ def send_message(msg, to, msg_socket=None, port=PORT):
     :param port: Integer with port to be used for sending/receiving messages.
         Default is 5005.
     """
-    print(msg_socket)
+    # print(msg_socket)
     if msg_socket is None:
         msg_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 

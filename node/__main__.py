@@ -139,8 +139,8 @@ def main():
     msg_socket.listen(5)
 
     # Send first heartbeat to server
-    # messageutils.send_heartbeat(
-    #     to=server_ip, port=network_params.COMPUTE_NODE_SEND_PORT)
+    messageutils.send_heartbeat(
+        to=server_ip, port=network_params.SERVER_RECV_PORT)
 
     while True:
         # Accept an incoming connection
@@ -169,7 +169,23 @@ def main():
         #     message_handlers.ack_job_submit_msg_handler(
         #         msg, shared_acknowledged_jobs_array)
 
-        if msg.msg_type == 'JOB_EXEC':
+
+        if msg.msg_type == 'HEARTBEAT':
+            # Removing pycharm's annoying unused warning for shared variable
+            # noinspection PyUnusedLocal
+                print("HEARTBEAT RECEIVED IN COMPUTE_NODE")
+            # shared_last_heartbeat_recv_time.value = \
+                message_handlers.heartbeat_msg_handler(
+                    # shared_job_array,
+                    # shared_submitted_jobs_array,
+                    executing_jobs_receipt_ids,
+                    executed_jobs_receipt_ids,
+                    executing_jobs_required_times,
+                    executing_jobs_begin_times,
+                    execution_jobs_pid_dict,
+                    server_ip)
+
+        elif msg.msg_type == 'JOB_EXEC':
             # TODO: See if num_execution_jobs_recvd is useful anywhere
             new_job_id = msg.content.receipt_id
             try:

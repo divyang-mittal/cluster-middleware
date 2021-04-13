@@ -26,6 +26,71 @@ EXECUTING_JOB_DIRECTORY_PREFIX = './exec_job'
 JOB_PICKLE_FILE = '/job.pickle'
 
 
+def heartbeat_msg_handler(#shared_job_array,
+                        #   shared_submitted_jobs_array,
+                          executing_jobs_receipt_ids,
+                          executed_jobs_receipt_ids,
+                          executing_jobs_required_times,
+                          executing_jobs_begin_times,
+                          execution_jobs_pid_dict,
+                          server_ip):
+    """Scan job_array for jobs queued up for submission, send to server.
+    :param shared_job_array: shared mp.array, idx set to true if a job idx ever
+        requested submission
+    :param shared_submitted_jobs_array: shared mp.Array, where idx is set
+        to True if job has been submitted to server
+    :param executed_jobs_receipt_ids: set, receipt ids of all executed jobs
+    :param executing_jobs_receipt_ids: set, receipt ids of all executed/ing jobs
+    :param executing_jobs_required_times: dict, receipt id:required time
+    :param executing_jobs_begin_times: dict
+    :param execution_jobs_pid_dict: dict, receipt id: executing child pid
+    :param server_ip: str, ip address of server
+    :return: float, heartbeat receive time
+    """
+    # Record receive time of heartbeat message
+    heartbeat_recv_time = time.time()
+
+    # for itr in range(len(shared_job_array)):
+
+    #     if shared_job_array[itr] and not shared_submitted_jobs_array[itr]:
+    #         # Submit job to server
+    #         submit_job(job_id=itr, server_ip=server_ip)
+    #         print('Submitted job s_id = %d to server\n\n>>>' % itr, end=' ')
+    #         # Update shared_submitted_jobs_array
+    #         shared_submitted_jobs_array[itr] = True
+    #         # TODO: Add log entry here
+
+    itr = 0
+    for job_id in set(executing_jobs_receipt_ids.keys()) - \
+                  set(executed_jobs_receipt_ids.keys()):
+        if itr >= 2:
+            break
+        # time_run = time.time() - executing_jobs_begin_times[job_id]
+        time_run = time.time() - executing_jobs_begin_times[job_id]
+        if time_run >= executing_jobs_required_times[job_id]:
+            try:
+                executing_child_pid = execution_jobs_pid_dict[job_id]
+                os.kill(executing_child_pid, signal.SIGTERM)
+                time.sleep(3)
+                itr += 1
+            except OSError as err:
+                if err.errno == errno.ESRCH:
+                    # ESRCH: child process no longer exists
+                    resend_executed_job_msg(job_id, server_ip)
+            finally:
+                # Only for safety, not really required.
+                executed_jobs_receipt_ids[job_id] = 0
+
+    # Send heartbeat back to the server
+    num_executing_jobs = len(executing_jobs_receipt_ids.keys())
+    messageutils.send_heartbeat(
+        to=server_ip,
+        port=network_params.SERVER_RECV_PORT,
+        num_executing_jobs=num_executing_jobs)
+
+    return heartbeat_recv_time
+
+
 def job_exec_msg_handler(current_job, job_executable,
                          execution_jobs_pid_dict,
                          executing_jobs_receipt_ids,

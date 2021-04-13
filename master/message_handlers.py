@@ -22,6 +22,95 @@ from . import priorityqueue
 SERVER_SEND_PORT = 5005
 SERVER_RECV_PORT = 5006
 
+def heartbeat_handler(compute_nodes, 
+                    node_last_seen, 
+                    running_jobs, 
+                    job_queue,
+                    job_executable, 
+                    job_sender, 
+                    # server_state_order, 
+                    # backup_ip,
+                    received_msg, 
+                    job_receipt_id,
+                    job_running_node):
+    """Handler function for HEARTBEAT messages from compute nodes.
+    :param compute_nodes: Dictionary with cpu usage and memory of each node
+        {node_id: status}
+    :param node_last_seen: Dictionary with time when last heartbeat was
+        received from node {node_id: last_seen_time}
+    :param running_jobs: Dictionary with jobs running on each system
+        {node_id: [list of jobs]}
+    :param job_queue: Priority queue for jobs that could not be scheduled.
+    :param job_sender: Dictionary with initial sender of jobs {job_id: sender}
+    :param job_executable: Dictionary with job executables {job_id: executable}
+    :param backup_ip: String with IP address of backup server.
+    :param server_state_order: Integer with sequence ordering number of
+        ServerState sent to backup server.
+    :param received_msg: message, received message.
+    :param job_receipt_id:
+    """
+
+    # Node has recovered and needs to be added back to node data structures
+    # Update compute node available resources
+    if received_msg.sender not in compute_nodes:
+        compute_nodes[received_msg.sender] = {}
+
+    if received_msg.sender not in running_jobs:
+        running_jobs[received_msg.sender] = []
+
+    if received_msg.sender not in node_last_seen:
+        node_last_seen[received_msg.sender] = time.time()
+
+    compute_nodes[received_msg.sender]['cpu'] = received_msg.content['cpu']
+    compute_nodes[received_msg.sender]['memory'] = \
+        received_msg.content['memory']
+    compute_nodes[received_msg.sender]['last_seen'] = time.time()
+    node_last_seen[received_msg.sender] = \
+        compute_nodes[received_msg.sender]['last_seen']
+
+    # Schedule jobs in job_queue, if possible.
+
+    # List of jobs in job_queue that could not be scheduled
+    wait_queue = priorityqueue.JobQueue()
+    while not job_queue.empty():
+        job = job_queue.get()
+        schedule_and_send_job(
+            job=job,
+            executable=job_executable[job.receipt_id],
+            job_queue=wait_queue,
+            compute_nodes=compute_nodes,
+            running_jobs=running_jobs,
+            job_running_node=job_running_node)
+
+    job_queue = wait_queue
+
+    # Update backup server with changed server state data structures
+    # copy_job_queue = copy.copy(job_queue)
+    # server_state = serverstate.ServerState(
+    #     compute_nodes=compute_nodes,
+    #     running_jobs=running_jobs,
+    #     job_queue=copy_job_queue,
+    #     job_executable=job_executable,
+    #     job_sender=job_sender,
+    #     job_receipt_id=job_receipt_id,
+    #     state_order=server_state_order)
+
+    # messageutils.make_and_send_message(
+    #     msg_type='BACKUP_UPDATE',
+    #     content=server_state,
+    #     file_path=None,
+    #     to=backup_ip,
+    #     msg_socket=None,
+    #     port=SERVER_SEND_PORT)
+
+    # Send heartbeat message to computing node
+    # Creating new process to wait and reply to heartbeat messages
+    process_wait_send_heartbeat = mp.Process(
+        target=messageutils.wait_send_heartbeat,
+        args=(received_msg.sender, network_params.COMPUTE_NODE_RECV_PORT, )
+    )
+    process_wait_send_heartbeat.start()
+
 
 def job_submit_handler(job_queue,
                        compute_nodes,
@@ -108,7 +197,7 @@ def job_submit_handler(job_queue,
     print("till here 1")
     messageutils.make_and_send_message(
         msg_type='ACK_JOB_SUBMIT',
-        content=job.submission_id,
+        content=job.receipt_id,
         file_path=None,
         to="127.0.0.1",
         port= network_params.SUBMIT_RECV_PORT,
@@ -372,3 +461,44 @@ def kill_job_handler(
     
 #     messageutils.send_message(msg=stats_job_msg,to=running_node, port=SERVER_SEND_PORT)
 #     print('SENDING STATS_JOB:', job.receipt_id)
+
+def node_crash_handler(compute_nodes,
+                       running_jobs,
+                       job_queue,
+                       job_executable,
+                       node_last_seen,
+                       received_msg,
+                       job_running_node):
+    """Handler function for NODE_CRASH messages.
+    Message received from child process of server. Reschedules all jobs that
+    were being executed on crashed nodes. Removes crashed nodes from the
+    compute_nodes dictionary.
+    :param job_queue: Priority queue for jobs that could not be scheduled.
+    :param compute_nodes: Dictionary with cpu usage and memory of each node
+        {node_id: status}
+    :param running_jobs: Dictionary with jobs running on each system
+        {node_id: [list of jobs]}
+    :param job_executable: Dictionary with job executables {job_id: executable}
+    :param node_last_seen: Dictionary with time when last heartbeat was
+        received from node {node_id: last_seen_time}
+    :param received_msg: message, received message.
+    """
+
+    crashed_nodes = received_msg.content
+    pre_crash_running_jobs = copy.deepcopy(running_jobs)
+
+    for node_id in crashed_nodes:
+        del compute_nodes[node_id]
+        del running_jobs[node_id]
+        del node_last_seen[node_id]
+
+    for node_id, running_jobs_list in pre_crash_running_jobs.items():
+        if node_id in crashed_nodes:
+            for job in running_jobs_list:
+                schedule_and_send_job(
+                    job=job,
+                    executable=job_executable[job.receipt_id],
+                    job_queue=job_queue,
+                    compute_nodes=compute_nodes,
+                    running_jobs=running_jobs,
+                    job_running_node=job_running_node)

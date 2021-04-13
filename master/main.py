@@ -8,6 +8,11 @@
             in this message along with the executable file. The server tries to
             schedule the job if possible, else adds it to the job queue.
 
+        - HEARTBEAT: The server(main) receives the cpu-time and memory of the
+            node through this heartbeat and also detects that the node is alive.
+            It responds with a heartbeat message of its own through a child
+            process.
+
         - EXECUTED_JOB: This message tells the server that the job given to the
             node has either been completed or preempted(with the help of a
             completed flag). If the job has been completed, the server removes
@@ -23,6 +28,10 @@
         - ACK_JOB_EXEC_PREEMPT: The server ignores this.
 
     Messages sent to node:
+        - HEARTBEAT: Server sends this message in response to HEARTBEAT message
+            by node. A delay has been set in the server's response, so that
+            heartbeat messages do not congest the network.
+
         - ACK_JOB_SUBMIT: Server sends this message on receiving a JOB_SUBMIT
             message from the node. Includes job's submission id in
             message's content field.
@@ -64,7 +73,8 @@ from .job import job_parser
 BUFFER_SIZE = 1048576
 
 SERVER_START_WAIT_TIME = 5  # seconds
-
+CRASH_ASSUMPTION_TIME = 20  # seconds
+CRASH_DETECTOR_SLEEP_TIME = 5  # seconds
 
 def print_welcome_message():
     """Print a welcome message read from prompt_welcome file to stdout."""
@@ -73,6 +83,41 @@ def print_welcome_message():
     # with open(prompt_welcome_filepath, 'r') as file:
     #     print(file.read())
     print("WELCOME TO MASTER NODE")
+
+
+def detect_node_crash(node_last_seen, server_ip):
+    """Detects node crashes.
+
+    Run as a child process, periodically checking last heartbeat times for each
+    computing node.
+
+    :param node_last_seen: Dictionary with time when last heartbeat was
+        received from node {node_id: last_seen_time}
+    :param server_ip: String with IP address of server (this node).
+    """
+
+    while True:
+        time.sleep(CRASH_DETECTOR_SLEEP_TIME)
+        print('CHECKING CRASH')
+
+        current_time = time.time()
+        crashed_nodes = set()
+        for node_id, last_seen_time in node_last_seen.items():
+            time_since_last_heartbeat = current_time - last_seen_time
+            if time_since_last_heartbeat > CRASH_ASSUMPTION_TIME:
+                crashed_nodes.add(node_id)
+
+        # Make and send a crash message to main process which is listening
+        # on SERVER_RECV_PORT for incoming messages.
+        if len(crashed_nodes) != 0:
+            print('NODE CRASHED')
+            print(crashed_nodes)
+            messageutils.make_and_send_message(msg_type='NODE_CRASH',
+                                               content=crashed_nodes,
+                                               file_path=None,
+                                               to=server_ip,
+                                               msg_socket=None,
+                                               port=network_params.SERVER_RECV_PORT)
 
 
 def main():
@@ -102,6 +147,14 @@ def main():
 
     job_receipt_id = 0  # Unique ID assigned to each job from server.
     # server_state_order = 0  # Sequence ordering of ServerState sent to backup.
+    manager = mp.Manager()
+    node_last_seen = manager.dict()  # {node_id: last_seen_time}
+
+
+    process_crash_detector = mp.Process(
+        target=detect_node_crash, args=(node_last_seen, network_params.SERVER_IP,))
+    process_crash_detector.start()
+
 
     # Creates a TCP/IP socket
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -149,7 +202,28 @@ def main():
                     # print(msg.file)
                     # print("XYZ")
 
-                    if msg.msg_type == 'JOB_SUBMIT':
+
+                    if msg.msg_type == 'HEARTBEAT':
+                            print("HEARTBEAT RECEIVED IN SERVER")
+                        # if msg.sender == backup_ip:
+                        #     message_handlers.heartbeat_from_backup_handler(
+                        #         received_msg=msg)
+
+                        # else:
+                            message_handlers.heartbeat_handler(
+                                compute_nodes=compute_nodes,
+                                node_last_seen=node_last_seen,
+                                running_jobs=running_jobs,
+                                job_queue=job_queue,
+                                job_sender=job_sender,
+                                job_executable=job_executable,
+                                job_receipt_id=job_receipt_id,
+                                # backup_ip=backup_ip,
+                                # server_state_order=server_state_order,
+                                received_msg=msg,
+                                job_running_node=job_running_node)
+
+                    elif msg.msg_type == 'JOB_SUBMIT':
                         job_receipt_id += 1
                         # server_state_order += 1
                         
@@ -205,9 +279,59 @@ def main():
 
                     elif msg.msg_type == 'ACK_SUBMITTED_JOB_COMPLETION':
                         message_handlers.ack_ignore_handler()
+
+                    elif msg.msg_type == 'NODE_CRASH':
+                        message_handlers.node_crash_handler(
+                            received_msg=msg,
+                            compute_nodes=compute_nodes,
+                            running_jobs=running_jobs,
+                            job_queue=job_queue,
+                            node_last_seen=node_last_seen,
+                            job_executable=job_executable,
+                            job_running_node=job_running_node)
                 else:
                     inputs.remove(msg_socket)
                     msg_socket.close()
+
+
+def node_crash_handler(compute_nodes,
+                       running_jobs,
+                       job_queue,
+                       job_executable,
+                       node_last_seen,
+                       received_msg):
+    """Handler function for NODE_CRASH messages.
+    Message received from child process of server. Reschedules all jobs that
+    were being executed on crashed nodes. Removes crashed nodes from the
+    compute_nodes dictionary.
+    :param job_queue: Priority queue for jobs that could not be scheduled.
+    :param compute_nodes: Dictionary with cpu usage and memory of each node
+        {node_id: status}
+    :param running_jobs: Dictionary with jobs running on each system
+        {node_id: [list of jobs]}
+    :param job_executable: Dictionary with job executables {job_id: executable}
+    :param node_last_seen: Dictionary with time when last heartbeat was
+        received from node {node_id: last_seen_time}
+    :param received_msg: message, received message.
+    """
+
+    crashed_nodes = received_msg.content
+    pre_crash_running_jobs = copy.deepcopy(running_jobs)
+
+    for node_id in crashed_nodes:
+        del compute_nodes[node_id]
+        del running_jobs[node_id]
+        del node_last_seen[node_id]
+
+    for node_id, running_jobs_list in pre_crash_running_jobs.items():
+        if node_id in crashed_nodes:
+            for job in running_jobs_list:
+                schedule_and_send_job(
+                    job=job,
+                    executable=job_executable[job.receipt_id],
+                    job_queue=job_queue,
+                    compute_nodes=compute_nodes,
+                    running_jobs=running_jobs)
 
 
 if __name__ == '__main__':
