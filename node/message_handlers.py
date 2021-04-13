@@ -59,15 +59,15 @@ def job_exec_msg_handler(current_job, job_executable,
     if not os.path.exists(current_job_directory):
         os.makedirs(current_job_directory)
 
-    # Store a.out in this directory
-    executable_file_bytes = job_executable
-    execution_dst = current_job_directory + current_job.get_executable_name()
+    # # Store a.out in this directory
+    # executable_file_bytes = job_executable
+    # execution_dst = current_job_directory + current_job.get_executable_name()
 
-    while os.path.isfile(execution_dst):
-        execution_dst = execution_dst + '_preempt'
+    # while os.path.isfile(execution_dst):
+    #     execution_dst = execution_dst + '_preempt'
 
-    with open(execution_dst, 'wb') as file:
-        file.write(executable_file_bytes)
+    # with open(execution_dst, 'wb') as file:
+    #     file.write(executable_file_bytes)
 
     # Book-keeping
     job_id = current_job.receipt_id
@@ -213,7 +213,7 @@ def executed_job_to_parent_msg_handler(msg, executed_jobs_receipt_ids,
         msg=msg,
         to=server_ip,
         msg_socket=None,
-        port=network_params.CLIENT_SEND_PORT)
+        port=network_params.COMPUTE_NODE_SEND_PORT)
     print('Sending executed job r_id=%d\n\n>>>' % msg.content.receipt_id,
           end=' ')
 
@@ -229,29 +229,29 @@ def ack_executed_job_msg_handler(msg, ack_executed_jobs_receipt_ids):
     ack_executed_jobs_receipt_ids[job_receipt_id] = 0
 
 
-def server_crash_msg_handler(shared_submitted_jobs_array,
-                             shared_acknowledged_jobs_array,
-                             executed_jobs_receipt_ids,
-                             ack_executed_jobs_receipt_ids, server_ip):
-    """Handle a message recvd from server fault detecting child process about
-    an assumed server crash at server_ip
+# def server_crash_msg_handler(shared_submitted_jobs_array,
+#                              shared_acknowledged_jobs_array,
+#                              executed_jobs_receipt_ids,
+#                              ack_executed_jobs_receipt_ids, server_ip):
+#     """Handle a message recvd from server fault detecting child process about
+#     an assumed server crash at server_ip
 
-    :param shared_submitted_jobs_array: mp.Array with type int,
-        contains submission id of jobs
-    :param shared_acknowledged_jobs_array: mp.Array, acknowledged submitted jobs
-    :param executed_jobs_receipt_ids: set, receipt ids of executed jobs
-    :param ack_executed_jobs_receipt_ids: set, receipt ids of acknowledged
-        executed jobs
-    :param server_ip: str, ip address of server
-    """
+#     :param shared_submitted_jobs_array: mp.Array with type int,
+#         contains submission id of jobs
+#     :param shared_acknowledged_jobs_array: mp.Array, acknowledged submitted jobs
+#     :param executed_jobs_receipt_ids: set, receipt ids of executed jobs
+#     :param ack_executed_jobs_receipt_ids: set, receipt ids of acknowledged
+#         executed jobs
+#     :param server_ip: str, ip address of server
+#     """
     # send first heartbeat to new primary server
-    messageutils.send_heartbeat(
-        to=server_ip, port=network_params.CLIENT_SEND_PORT)
+    # messageutils.send_heartbeat(
+    #     to=server_ip, port=network_params.COMPUTE_NODE_SEND_PORT)
     # Replay all non-ack messages
-    replay_non_ack_msgs(shared_submitted_jobs_array,
-                        shared_acknowledged_jobs_array,
-                        executed_jobs_receipt_ids,
-                        ack_executed_jobs_receipt_ids, server_ip)
+    # replay_non_ack_msgs(shared_submitted_jobs_array,
+    #                     shared_acknowledged_jobs_array,
+    #                     executed_jobs_receipt_ids,
+    #                     ack_executed_jobs_receipt_ids, server_ip)
 
 
 # Helper Functions
@@ -278,38 +278,38 @@ def resend_executed_job_msg(job_receipt_id, server_ip):
         file_path=None,
         to=server_ip,
         msg_socket=None,
-        port=network_params.CLIENT_SEND_PORT)
+        port=network_params.COMPUTE_NODE_SEND_PORT)
 
 
-def replay_non_ack_msgs(shared_submitted_jobs_array,
-                        shared_acknowledged_jobs_array,
-                        executed_jobs_receipt_ids,
-                        ack_executed_jobs_receipt_ids, server_ip):
-    """Send all non ack messages to server.
+# def replay_non_ack_msgs(shared_submitted_jobs_array,
+#                         shared_acknowledged_jobs_array,
+#                         executed_jobs_receipt_ids,
+#                         ack_executed_jobs_receipt_ids, server_ip):
+#     """Send all non ack messages to server.
 
-    Use the book-keeping arrays and sets to find the non ack messages
+#     Use the book-keeping arrays and sets to find the non ack messages
 
-    :param shared_submitted_jobs_array: mp.Array with type int,
-        contains submission id of jobs
-    :param shared_acknowledged_jobs_array: mp.Array, acknowledged submitted jobs
-    :param executed_jobs_receipt_ids: set, receipt ids of executed jobs
-    :param ack_executed_jobs_receipt_ids: set, receipt ids of acknowledged
-        executed jobs
-    :param server_ip: str, id address of server
-    """
-    for itr, elem in enumerate(shared_submitted_jobs_array):
-        if elem and not shared_acknowledged_jobs_array[itr]:
-            # Non acknowledged job submission, resend job
-            print('Replaying non-acked SUBMIT_JOB for job s_id =', itr,
-                  '\n\n>>>', end=' ')
-            submit_job(job_id=itr, server_ip=server_ip)
+#     :param shared_submitted_jobs_array: mp.Array with type int,
+#         contains submission id of jobs
+#     :param shared_acknowledged_jobs_array: mp.Array, acknowledged submitted jobs
+#     :param executed_jobs_receipt_ids: set, receipt ids of executed jobs
+#     :param ack_executed_jobs_receipt_ids: set, receipt ids of acknowledged
+#         executed jobs
+#     :param server_ip: str, id address of server
+#     """
+#     for itr, elem in enumerate(shared_submitted_jobs_array):
+#         if elem and not shared_acknowledged_jobs_array[itr]:
+#             # Non acknowledged job submission, resend job
+#             print('Replaying non-acked SUBMIT_JOB for job s_id =', itr,
+#                   '\n\n>>>', end=' ')
+#             submit_job(job_id=itr, server_ip=server_ip)
 
-    non_ack_executing_jobs = \
-        set(executed_jobs_receipt_ids.keys()) - \
-        set(ack_executed_jobs_receipt_ids.keys())
+#     non_ack_executing_jobs = \
+#         set(executed_jobs_receipt_ids.keys()) - \
+#         set(ack_executed_jobs_receipt_ids.keys())
 
-    for receipt_id in non_ack_executing_jobs:
-        # Non acknowledged executed job msg, resend message
-        print('Replaying non-acked EXECUTED_JOB for job r_id =', receipt_id,
-              '\n\n>>>', end=' ')
-        resend_executed_job_msg(job_receipt_id=receipt_id, server_ip=server_ip)
+#     for receipt_id in non_ack_executing_jobs:
+#         # Non acknowledged executed job msg, resend message
+#         print('Replaying non-acked EXECUTED_JOB for job r_id =', receipt_id,
+#               '\n\n>>>', end=' ')
+#         resend_executed_job_msg(job_receipt_id=receipt_id, server_ip=server_ip)

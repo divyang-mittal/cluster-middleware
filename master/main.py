@@ -55,11 +55,12 @@ import time
 from . import message_handlers
 from ..messaging import message
 from ..messaging import messageutils
+from ..messaging import network_params
 from . import priorityqueue
 from .job import job_parser
 
-SERVER_SEND_PORT = 5005
-SERVER_RECV_PORT = 5006
+# SERVER_SEND_PORT = 5005
+# SERVER_RECV_PORT = 5006
 BUFFER_SIZE = 1048576
 
 SERVER_START_WAIT_TIME = 5  # seconds
@@ -106,7 +107,7 @@ def main():
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     # Binds the socket to the port
-    server_address = ('', SERVER_RECV_PORT)
+    server_address = ('', network_params.SERVER_RECV_PORT)
     print('Starting up on %s port %s' % server_address)
     server.bind(server_address)
     server.listen(5)
@@ -196,6 +197,7 @@ def main():
 
 
                     elif msg.msg_type == 'ACK_JOB_EXEC':
+                        print("chal gya")
                         message_handlers.ack_ignore_handler()
 
                     elif msg.msg_type == 'ACK_JOB_EXEC_PREEMPT':

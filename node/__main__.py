@@ -102,14 +102,14 @@ def main():
                         type=str, required=True)
     # parser.add_argument("-backupip", help="IP address of backup server",
                         # type=str, required=True)
-    # parser.add_argument("-selfip", help="IP address of self",
-                        # type=str, required=True)
+    parser.add_argument("-selfip", help="IP address of self",
+                        type=str, required=True)
     args = vars(parser.parse_args())
 
     # Obtain server and backup ip's from the arguments
-    # server_ip = args['serverip']
+    server_ip = args['serverip']
     # backup_ip = args['backupip']
-    #self_ip = args['selfip']
+    self_ip = args['selfip']
 
     manager = mp.Manager()
     # Set-Dict to store all executed and acknowledged executed jobs' receipt ids
@@ -132,15 +132,15 @@ def main():
     # Mask SIGINT for cleanup with killing all child processes
     # signal.signal(signal.SIGINT, sigint_handler)
 
-    # Start listening to incoming connections on CLIENT_RECV_PORT.
+    # Start listening to incoming connections on COMPUTE_NODE_RECV_PORT.
     # Server and child processes connect to this socket
     msg_socket = socket.socket()
-    msg_socket.bind(('', network_params.CLIENT_RECV_PORT))
+    msg_socket.bind(('', network_params.COMPUTE_NODE_RECV_PORT))
     msg_socket.listen(5)
 
     # Send first heartbeat to server
     # messageutils.send_heartbeat(
-    #     to=server_ip, port=network_params.CLIENT_SEND_PORT)
+    #     to=server_ip, port=network_params.COMPUTE_NODE_SEND_PORT)
 
     while True:
         # Accept an incoming connection
@@ -158,6 +158,11 @@ def main():
         assert isinstance(
             msg, message.Message), "Received object on socket not of type " \
                                    "Message."
+        
+        # print(msg)
+        # print("MSG CONTENT : " + str(msg.content.s))
+        # print("MSG TYPE : " + str(msg.msg_type))
+        # print("MSG FILE : " + str(msg.file))
 
 
         # elif msg.msg_type == 'ACK_JOB_SUBMIT':
@@ -189,7 +194,7 @@ def main():
                 file_path=None,
                 to=server_ip,
                 msg_socket=None,
-                port=network_params.CLIENT_SEND_PORT)
+                port=network_params.SERVER_RECV_PORT)
 
         elif msg.msg_type == 'JOB_PREEMPT_EXEC':
             print(
@@ -211,7 +216,7 @@ def main():
                 file_path=None,
                 to=server_ip,
                 msg_socket=None,
-                port=network_params.CLIENT_SEND_PORT)
+                port=network_params.SERVER_RECV_PORT)
 
         elif msg.msg_type == 'JOB_KILL':
             print(
@@ -221,19 +226,20 @@ def main():
             message_handlers.job_kill_msg_handler(
                 msg=msg,
                 execution_jobs_pid_dict=execution_jobs_pid_dict,
-                executed_jobs_receipt_ids=executed_jobs_receipt_ids,
+                # executed_jobs_receipt_ids=executed_jobs_receipt_ids,
                 executing_jobs_receipt_ids=executing_jobs_receipt_ids,
-                executing_jobs_begin_times=executing_jobs_begin_times,
-                executing_jobs_required_times=executing_jobs_required_times,
-                server_ip=server_ip,
-                self_ip=self_ip)
+                # executing_jobs_begin_times=executing_jobs_begin_times,
+                # executing_jobs_required_times=executing_jobs_required_times,
+                # server_ip=server_ip,
+                # self_ip=self_ip
+                )
             messageutils.make_and_send_message(
                 msg_type='ACK_JOB_KILL_EXEC',
                 content=None,
                 file_path=None,
                 to=server_ip,
                 msg_socket=None,
-                port=network_params.CLIENT_SEND_PORT)
+                port=network_params.SERVER_RECV_PORT)
 
         elif msg.msg_type == 'EXECUTED_JOB_TO_PARENT':
             message_handlers.executed_job_to_parent_msg_handler(

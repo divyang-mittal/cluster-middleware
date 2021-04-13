@@ -85,7 +85,7 @@ def execute_job(current_job,
             content=current_job,
             file_path=None, to=self_ip,
             msg_socket=None,
-            port=network_params.CLIENT_RECV_PORT)
+            port=network_params.COMPUTE_NODE_RECV_PORT)
         # Gracefully exit
         # noinspection PyProtectedMember
         os._exit(0)
@@ -128,4 +128,4 @@ def execute_job(current_job,
         content=current_job,
         file_path=None, to=self_ip,
         msg_socket=None,
-        port=network_params.CLIENT_RECV_PORT)
+        port=network_params.COMPUTE_NODE_RECV_PORT)

@@ -78,14 +78,14 @@ def job_submit_handler(job_queue,
     #job_sender[job_receipt_id] = received_msg.sender
     job_executable[job_receipt_id] = received_msg.file
 
-  #####  # schedule_and_send_job(
-    #     job=job,
-    #     executable=received_msg.file,
-    #     job_queue=job_queue,
-    #     compute_nodes=compute_nodes,
-    #     running_jobs=running_jobs,
-    #     job_running_node=job_running_node
-    #     )
+    schedule_and_send_job(
+        job=job,
+        executable=received_msg.file,
+        job_queue=job_queue,
+        compute_nodes=compute_nodes,
+        running_jobs=running_jobs,
+        job_running_node=job_running_node
+        )
 
     # Update backup server with changed server state data structures
     # copy_job_queue = copy.copy(job_queue)
@@ -302,9 +302,9 @@ def schedule_and_send_job(job,
         {node_id: [list of jobs]}
     """
 
-    node_for_job, preempt_job = matchmaking.matchmaking(
-        job=job, compute_nodes=compute_nodes, running_jobs=running_jobs)
-
+   # # node_for_job, preempt_job = matchmaking.matchmaking(
+   # #     job=job, compute_nodes=compute_nodes, running_jobs=running_jobs)
+    node_for_job = "127.0.0.1"
     # Job cannot be scheduled at the moment
     if node_for_job is None:
         job_queue.put(job)
@@ -314,18 +314,22 @@ def schedule_and_send_job(job,
     if job.first_response is None:
         job.first_response = time.time()
 
-    if preempt_job is not None:
-        job_exec_msg = message.Message(
-            msg_type='JOB_PREEMPT_EXEC',
-            content=(job, preempt_job.receipt_id),
-            file=executable)
-    else:
-        job_exec_msg = message.Message(
+    # if preempt_job is not None:
+    #     job_exec_msg = message.Message(
+    #         msg_type='JOB_PREEMPT_EXEC',
+    #         content=(job, preempt_job.receipt_id),
+    #         file=executable)
+    # else:
+    #     job_exec_msg = message.Message(
+    #         msg_type='JOB_EXEC', content=job, file=executable)
+
+    job_exec_msg = message.Message(
             msg_type='JOB_EXEC', content=job, file=executable)
+
 
     job_running_node[job.receipt_id] = node_for_job
     messageutils.send_message(
-        msg=job_exec_msg, to=node_for_job, port=SERVER_SEND_PORT)
+        msg=job_exec_msg, to=node_for_job, port=network_params.COMPUTE_NODE_RECV_PORT)
 
     print('SENDING JOB_EXEC:', job.submission_id, job.receipt_id)
 
