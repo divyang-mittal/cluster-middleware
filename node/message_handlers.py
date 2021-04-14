@@ -21,9 +21,9 @@ from .job import job_execution
 from ..messaging import messageutils
 from ..messaging import network_params
 
-SUBMITTED_JOB_DIRECTORY_PREFIX = './submit_job'
-EXECUTING_JOB_DIRECTORY_PREFIX = './exec_job'
-JOB_PICKLE_FILE = '/job.pickle'
+SUBMITTED_JOB_DIRECTORY_PREFIX = './sharedfolder/submit_job'
+EXECUTING_JOB_DIRECTORY_PREFIX = './sharedfolder/exec_job'
+JOB_PICKLE_FILE = '/sharedfolder/job.pickle'
 
 
 def heartbeat_msg_handler(#shared_job_array,
