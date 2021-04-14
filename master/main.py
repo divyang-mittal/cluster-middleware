@@ -273,7 +273,11 @@ def main():
                     
                         
                     elif msg.msg_type == 'STATS_JOB':
-
+                        print("STATS RECEIVED IN SERVER")
+                        message_handlers.stats_job_handler(
+                            running_jobs= running_jobs,
+                            job_queue= job_queue,  
+                        )
 
                     elif msg.msg_type == 'ACK_JOB_EXEC':
                         message_handlers.ack_ignore_handler()
@@ -286,7 +290,10 @@ def main():
 
                     elif msg.msg_type == 'ACK_JOB_KILL_EXEC':
                         print("KILLED JOB")
-                        message_handlers.ack_ignore_handler()
+                        message_handlers.ack_job_kill_handler(
+                            content = msg.content
+                        )
+
 
                     elif msg.msg_type == 'NODE_CRASH':
                         message_handlers.node_crash_handler(

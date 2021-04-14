@@ -253,7 +253,7 @@ def main():
                 )
             messageutils.make_and_send_message(
                 msg_type='ACK_JOB_KILL_EXEC',
-                content=None,
+                content=msg.content,
                 file_path=None,
                 to=server_ip,
                 msg_socket=None,

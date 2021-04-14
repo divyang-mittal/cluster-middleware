@@ -325,47 +325,6 @@ def ack_ignore_handler():
     pass
 
 
-# def node_crash_handler(compute_nodes,
-#                        running_jobs,
-#                        job_queue,
-#                        job_executable,
-#                        node_last_seen,
-#                        received_msg):
-#     """Handler function for NODE_CRASH messages.
-
-#     Message received from child process of server. Reschedules all jobs that
-#     were being executed on crashed nodes. Removes crashed nodes from the
-#     compute_nodes dictionary.
-
-#     :param job_queue: Priority queue for jobs that could not be scheduled.
-#     :param compute_nodes: Dictionary with cpu usage and memory of each node
-#         {node_id: status}
-#     :param running_jobs: Dictionary with jobs running on each system
-#         {node_id: [list of jobs]}
-#     :param job_executable: Dictionary with job executables {job_id: executable}
-#     :param node_last_seen: Dictionary with time when last heartbeat was
-#         received from node {node_id: last_seen_time}
-#     :param received_msg: message, received message.
-#     """
-
-#     crashed_nodes = received_msg.content
-#     pre_crash_running_jobs = copy.deepcopy(running_jobs)
-
-#     for node_id in crashed_nodes:
-#         del compute_nodes[node_id]
-#         del running_jobs[node_id]
-#         del node_last_seen[node_id]
-
-#     for node_id, running_jobs_list in pre_crash_running_jobs.items():
-#         if node_id in crashed_nodes:
-#             for job in running_jobs_list:
-#                 schedule_and_send_job(
-#                     job=job,
-#                     executable=job_executable[job.receipt_id],
-#                     job_queue=job_queue,
-#                     compute_nodes=compute_nodes,
-#                     running_jobs=running_jobs)
-
 
 # Helper functions
 
@@ -444,21 +403,55 @@ def kill_job_handler(
     messageutils.send_message(msg=kill_job_msg,to=running_node, port=network_params.COMPUTE_NODE_RECV_PORT)
     print('SENDING KILL_JOB:', job_receipt_id)
 
+def ack_job_kill_handler(
+                        content
+                    ):
+    ack_job_kill_msg = message.Message(
+        msg_type='ACK_JOB_KILL_SUCCESS', content=content )                
+    messageutils.send_message(msg=ack_job_kill_msg, to=network_params.SERVER_IP, port=network_params.KILL_RECV_PORT)
 
-# def stats_job_handler(
-#                     received_msg,
-#                     executable,
-#                     job_receipt_id,
-#                     job_running_node
-#                     ):
 
-#     job = received_msg.content
-#     stats_job_msg = message.Message(
-#         msg_type = 'STATS_JOB', content=job, file=executable)
-#     running_node = job_running_node[job.receipt_id]
+def stats_job_handler(
+                        running_jobs,
+                        job_queue
+                    ):
+
+    # job = received_msg.content
+    # stats_job_msg = message.Message(
+    #     msg_type = 'STATS_JOB', content=job, file=executable)
+    # running_node = job_running_node[job.receipt_id]
     
-#     messageutils.send_message(msg=stats_job_msg,to=running_node, port=SERVER_SEND_PORT)
-#     print('SENDING STATS_JOB:', job.receipt_id)
+    # messageutils.send_message(msg=stats_job_msg,to=running_node, port=SERVER_SEND_PORT)
+    # print('SENDING STATS_JOB:', job.receipt_id)
+    # content = running_jobs
+    # content = {'running_jobs' : running_jobs, 'job_queue' : job_queue }
+    # content = { 'running_jobs' : ["job1", "job2"], 'job_queue' : ["job3", "job4"]}
+
+    jobs_status = []
+
+    for node_jobs in running_jobs.values():
+        for cur_job in node_jobs:
+            temp_job_status = {}
+            temp_job_status['status'] = 'running'
+            temp_job_status['job_receipt_id'] = cur_job.receipt_id
+            # temp_job_status['name'] = cur_job.name
+            temp_job_status['runtime'] = cur_job.time_run
+            jobs_status.append(temp_job_status)
+
+    temp_queue = copy.copy(job_queue)
+
+    while not temp_queue.empty():
+        cur_job = temp_queue.get()
+        temp_job_status = {}
+        temp_job_status['status'] = 'queue'
+        temp_job_status['job_receipt_id'] = cur_job.receipt_id
+        temp_job_status['name'] = cur_job.name
+        # temp_job_status['runtime'] = cur_job.time_run
+        jobs_status.append(temp_job_status)
+
+    ack_stats_result_msg = message.Message(
+        msg_type='ACK_STATS_RESULT_MSG', content=jobs_status)
+    messageutils.send_message(msg=ack_stats_result_msg, to=network_params.SERVER_IP, port=network_params.STATS_RECV_PORT)
 
 def node_crash_handler(compute_nodes,
                        running_jobs,

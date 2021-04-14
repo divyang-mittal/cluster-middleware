@@ -26,21 +26,22 @@ while(True):
 		messageutils.make_and_send_message(msg_type = "KILL_JOB" ,content = args.Kill, to = network_params.SERVER_IP, port = network_params.SERVER_RECV_PORT, file_path =None, msg_socket=None)
  		
 		
-		# connection, client_address = listen_socket.accept()
+		connection, client_address = listen_socket.accept()
 
-		# data_list = []
-		# data = connection.recv(network_params.BUFFER_SIZE)
+		data_list = []
+		data = connection.recv(network_params.BUFFER_SIZE)
 			
-		# while data:
-		# 	data_list.append(data)
-		# 	data = connection.recv(network_params.BUFFER_SIZE)	
-		# data = b''.join(data_list)
+		while data:
+			data_list.append(data)
+			data = connection.recv(network_params.BUFFER_SIZE)	
+		data = b''.join(data_list)
 
-		# msg = pickle.loads(data)
-		# assert isinstance(msg, message.Message), "Can't specify the message type"
+		msg = pickle.loads(data)
+		assert isinstance(msg, message.Message), "Can't specify the message type"
 
-		# if(msg.msg_type == 'Kill Success'):
-		# 	print("Job has been successfully killed: \n")
+		if(msg.msg_type == 'ACK_JOB_KILL_SUCCESS'):
+			print("Job Killed \n")
+			print("Job Id : " + str(msg.content))
 		
 		break
 

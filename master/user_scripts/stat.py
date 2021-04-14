@@ -5,9 +5,9 @@ import psutil
 import argparse
 import sys
 sys.path.append("..")
-from messaging import network_params
-from messaging import message 
-from messaging import messageutils
+from ...messaging import network_params
+from ...messaging import message 
+from ...messaging import messageutils
 import getpass
 
 # parser = argparse.ArgumentParser()
@@ -20,7 +20,7 @@ import getpass
 while(True):
 	try:
 		listen_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		listen_address = ('', network_params.KILL_RECV_PORT)
+		listen_address = ('', network_params.STATS_RECV_PORT)
 		listen_socket.bind(listen_address)
 		listen_socket.listen(5)
 		messageutils.make_and_send_message(msg_type = "STATS_JOB" ,content=None, to = network_params.SERVER_IP, port = network_params.SERVER_RECV_PORT, file_path =None, msg_socket=None)
@@ -37,8 +37,8 @@ while(True):
 		msg = pickle.loads(data)
 		assert isinstance(msg, message.Message), "Can't specify the message type"
 
-		if(msg.msg_type == "STATS_SUCCESS'):
-			print("Job has been successfully sent: \n")
+		if(msg.msg_type == "ACK_STATS_RESULT_MSG"):
+			print('STATS RECEIVED')
 			print(msg.content)
 		break
 
