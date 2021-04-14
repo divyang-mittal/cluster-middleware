@@ -438,7 +438,7 @@ def stats_job_handler(
             temp_job_status['runtime'] = cur_job.time_run
             jobs_status.append(temp_job_status)
 
-    temp_queue = copy.copy(job_queue)
+    temp_queue = copy.deepcopy(job_queue)
 
     while not temp_queue.empty():
         cur_job = temp_queue.get()
