@@ -99,7 +99,7 @@ def main():
     # Begin argument parsing
     parser = argparse.ArgumentParser()
     parser.add_argument("-serverip", help="IP address of central server",
-                        type=str, required=True)
+                        type=str, required=False)
     # parser.add_argument("-backupip", help="IP address of backup server",
                         # type=str, required=True)
     parser.add_argument("-selfip", help="IP address of self",
@@ -107,7 +107,7 @@ def main():
     args = vars(parser.parse_args())
 
     # Obtain server and backup ip's from the arguments
-    server_ip = args['serverip']
+    server_ip = network_params.SERVER_IP
     # backup_ip = args['backupip']
     self_ip = args['selfip']
 

@@ -35,9 +35,7 @@ def make_and_send_message(msg_type, content, file_path, to, msg_socket, port, se
     # print(msg.sender)
     # print(msg.file)
     # print(msg.content)
-    print(f"Compute node: {msg.msg_type}")
     send_message(msg=msg, to=to, msg_socket=msg_socket, port=port)
-    print('Send message called')
 
 
 def wait_send_heartbeat_to_backup(to, port, server_state):
@@ -93,7 +91,6 @@ def send_message(msg, to, msg_socket=None, port=PORT):
 
     msg.sender = msg_socket.getsockname()[0]
     msg_data = io.BytesIO(pickle.dumps(msg))
-    print('msg data: ', msg_data)
 
     try:
         while True:

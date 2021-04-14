@@ -128,6 +128,7 @@ def execute_job(current_job,
     # Prepare and send job completion message to parent
     # executed_jobs_receipt_ids[job_id] = 0
     executed_jobs_receipt_ids[job_id] = 0
+    print('Job executed successfully')
     messageutils.make_and_send_message(
         msg_type='EXECUTED_JOB_TO_PARENT',
         content=current_job,
