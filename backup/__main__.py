@@ -107,7 +107,7 @@ def main():
     
     print("first_heartbeat to server")
     # Send first heartbeat to server
-    messageutils.send_heartbeat(to=server_ip, port=network_params.SERVER_RECV_PORT)
+    messageutils.send_heartbeat_backup(to=server_ip, port=network_params.SERVER_RECV_PORT)
 
     while True:
         # Accept an incoming connection

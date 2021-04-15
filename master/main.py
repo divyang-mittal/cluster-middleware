@@ -235,32 +235,28 @@ def main():
                     # print("XYZ")
 
 
-                    if msg.msg_type == 'HEARTBEAT':
-                        print("HEARTBEAT RECEIVED IN SERVER")
-                        print(msg.sender)
-                        print(backup_ip)
-                        if msg.sender == backup_ip:
-                            print("HEARTBEAT from backup yeh")
-                            message_handlers.heartbeat_from_backup_handler(
-                                 received_msg=msg)
+                    if msg.msg_type == 'HEARTBEAT_BACKUP':
+                        print("HEARTBEAT from backup yeh")
+                        message_handlers.heartbeat_from_backup_handler(
+                                received_msg=msg)
 
-                        else:
-                            print("\n\n\n")
-                            print(compute_nodes)
-                            print("\n\n\n")
+                    elif msg.msg_type == 'HEARTBEAT':
+                        print("\n\n\n")
+                        print(compute_nodes)
+                        print("\n\n\n")
 
-                            message_handlers.heartbeat_handler(
-                                compute_nodes=compute_nodes,
-                                node_last_seen=node_last_seen,
-                                running_jobs=running_jobs,
-                                job_queue=job_queue,
-                                job_sender=job_sender,
-                                job_executable=job_executable,
-                                job_receipt_id=job_receipt_id,
-                                backup_ip=backup_ip,
-                                server_state_order=server_state_order,
-                                received_msg=msg,
-                                job_running_node=job_running_node)
+                        message_handlers.heartbeat_handler(
+                            compute_nodes=compute_nodes,
+                            node_last_seen=node_last_seen,
+                            running_jobs=running_jobs,
+                            job_queue=job_queue,
+                            job_sender=job_sender,
+                            job_executable=job_executable,
+                            job_receipt_id=job_receipt_id,
+                            backup_ip=backup_ip,
+                            server_state_order=server_state_order,
+                            received_msg=msg,
+                            job_running_node=job_running_node)
 
                     elif msg.msg_type == 'JOB_SUBMIT':
                         job_receipt_id += 1

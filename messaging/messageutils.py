@@ -142,3 +142,34 @@ def send_heartbeat(to, msg_socket=None, port=PORT, num_executing_jobs=None):
         to=to,
         msg_socket=msg_socket,
         port=port)
+
+def send_heartbeat_backup(to, msg_socket=None, port=PORT, num_executing_jobs=None):
+    """Sends heartbeat message with system resource usage information.
+
+    Heartbeat message includes current CPU usage percentage and memory available
+    for use by new jobs issued at the system.
+
+    :param to: String with IP address of receiver node
+    :param msg_socket: Socket object on which message is to be sent. Opens new
+        socket if value is None.
+    :param port: Integer with port to be used for sending/receiving messages.
+        Default is 5005.
+    """
+    # 'cpu': Percent CPU available, 'memory': Available memory in MB
+    memory = psutil.virtual_memory().available >> 20
+    if num_executing_jobs is not None:
+        memory = max(300, memory - num_executing_jobs * 300)
+
+    system_resources = {
+        'cpu': 100 - psutil.cpu_percent(),
+        'memory': memory,
+    }
+
+    # Construct the message with system resources and send to server
+    make_and_send_message(
+        msg_type='HEARTBEAT_BACKUP',
+        content=system_resources,
+        file_path=None,
+        to=to,
+        msg_socket=msg_socket,
+        port=port)
