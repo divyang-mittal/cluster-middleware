@@ -49,6 +49,12 @@
         - SUBMITTED_JOB_COMPLETION: Server, on receiving EXECUTED_JOB message
             from a node, checks job's 'completed' attribute, and if True,
             sends SUBMITTED_JOB_COMPLETION to submitting node.
+        
+        Messages sent to backup:
+        - BACKUP_UPDATE: Sent whenever server state data structures are updated.
+            Contains latest ServerState.
+        - HEARTBEAT: This is sent in response to the heartbeat of the backup.
+            This is used by the backup to detect server crash and take over.
 """
 
 import argparse
@@ -76,6 +82,10 @@ BUFFER_SIZE = 1048576
 SERVER_START_WAIT_TIME = 5  # seconds
 CRASH_ASSUMPTION_TIME = 20  # seconds
 CRASH_DETECTOR_SLEEP_TIME = 5  # seconds
+
+SERVER_START_WAIT_TIME = 5  # seconds
+BACKUP_SERVER_STATE_PATH = '/home/ubuntu/sharedfolder/backup_state.pkl'
+
 
 def print_welcome_message():
     """Print a welcome message read from prompt_welcome file to stdout."""
@@ -146,11 +156,32 @@ def main():
     job_running_node = {} #{job_id: running_node}
     job_sender = {}  # {job_id: sender}
 
+    # In case of backup server taking over on original central server crash
+    # gives backup process enough time to terminate
+    time.sleep(SERVER_START_WAIT_TIME)
+    
     job_receipt_id = 0  # Unique ID assigned to each job from server.
-    # server_state_order = 0  # Sequence ordering of ServerState sent to backup.
+    server_state_order = 0  # Sequence ordering of ServerState sent to backup.
     manager = mp.Manager()
     node_last_seen = manager.dict()  # {node_id: last_seen_time}
+    
+    # Initialize current server state from backup snapshot
+    # Used in case primary backup is taking over as central server
+    if os.path.isfile(BACKUP_SERVER_STATE_PATH):
+        with open(BACKUP_SERVER_STATE_PATH, 'rb') as backup_server_state:
+            server_state = pickle.load(backup_server_state)
 
+        compute_nodes = server_state.compute_nodes
+        for node_id, _ in compute_nodes.items():
+            node_last_seen[node_id] = time.time()
+
+        running_jobs = server_state.running_jobs
+        job_receipt_id = server_state.job_receipt_id
+        job_sender = server_state.job_sender
+        job_executable = server_state.job_executable
+        job_queue = priorityqueue.JobQueue()
+        for job in server_state.job_queue:
+            job_queue.put(job)
 
     process_crash_detector = mp.Process(
         target=detect_node_crash, args=(node_last_seen, network_params.SERVER_IP,))
@@ -205,12 +236,12 @@ def main():
 
 
                     if msg.msg_type == 'HEARTBEAT':
-                            print("HEARTBEAT RECEIVED IN SERVER")
-                        # if msg.sender == backup_ip:
-                        #     message_handlers.heartbeat_from_backup_handler(
-                        #         received_msg=msg)
+                        print("HEARTBEAT RECEIVED IN SERVER")
+                        if msg.sender == backup_ip:
+                             message_handlers.heartbeat_from_backup_handler(
+                                 received_msg=msg)
 
-                        # else:
+                        else:
                             print("\n\n\n")
                             print(compute_nodes)
                             print("\n\n\n")
@@ -223,14 +254,14 @@ def main():
                                 job_sender=job_sender,
                                 job_executable=job_executable,
                                 job_receipt_id=job_receipt_id,
-                                # backup_ip=backup_ip,
-                                # server_state_order=server_state_order,
+                                backup_ip=backup_ip,
+                                server_state_order=server_state_order,
                                 received_msg=msg,
                                 job_running_node=job_running_node)
 
                     elif msg.msg_type == 'JOB_SUBMIT':
                         job_receipt_id += 1
-                        # server_state_order += 1
+                        server_state_order += 1
                         
                         message_handlers.job_submit_handler(
                             job_queue=job_queue,
@@ -241,12 +272,12 @@ def main():
                             job_executable=job_executable,
                             received_msg=msg,
                             job_receipt_id=job_receipt_id,
-                            # backup_ip=backup_ip,
-                            # server_state_order=server_state_order
+                            backup_ip=backup_ip,
+                            server_state_order=server_state_order
                         )
 
                     elif msg.msg_type == 'EXECUTED_JOB':
-                        # server_state_order += 1
+                        server_state_order += 1
                         print(
                             'RECV: ' + str(msg.content) + ' ' +
                             str(msg.content.completed))
@@ -258,17 +289,21 @@ def main():
                             job_running_node=job_running_node,
                             job_sender=job_sender,
                             job_executable=job_executable,
-                            # backup_ip=backup_ip,
-                            # server_state_order=server_state_order,
+                            backup_ip=backup_ip,
+                            server_state_order=server_state_order,
                             received_msg=msg)
 
                     elif msg.msg_type == 'KILL_JOB':
-                        message_handlers.kill_job_handler(
+                        job_queue = message_handlers.kill_job_handler(
+                            job_queue=job_queue,
+                            compute_nodes=compute_nodes,
                             job_receipt_id=int(msg.content),
                             running_jobs=running_jobs,
                             job_executable=job_executable,
                             job_sender=job_sender,
-                            job_running_node=job_running_node
+                            job_running_node=job_running_node,
+                            backup_ip=backup_ip,
+                            server_state_order=server_state_order
                         )
                     
                         

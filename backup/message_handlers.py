@@ -21,7 +21,7 @@ CLIENT_SEND_PORT = 5006
 SERVER_SEND_PORT = 5005
 SERVER_RECV_PORT = 5006
 
-BACKUP_SERVER_STATE_PATH = './backup_state.pkl'
+BACKUP_SERVER_STATE_PATH = '/home/ubuntu/sharedfolder/backup_state.pkl'
 
 
 def heartbeat_handler(received_msg):

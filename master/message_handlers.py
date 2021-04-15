@@ -22,14 +22,27 @@ from . import priorityqueue
 SERVER_SEND_PORT = 5005
 SERVER_RECV_PORT = 5006
 
+def heartbeat_from_backup_handler(received_msg):
+    """Handler function for HEARTBEAT messages from backup server..
+    :param received_msg: message, received message.
+    """
+
+    # Send heartbeat message to backup server
+    # Creating new process to wait and reply to heartbeat messages
+    process_wait_send_heartbeat_to_backup = mp.Process(
+        target=messageutils.wait_send_heartbeat_to_backup,
+        args=(received_msg.sender, SERVER_SEND_PORT, None,)
+    )
+    process_wait_send_heartbeat_to_backup.start()
+
 def heartbeat_handler(compute_nodes, 
                     node_last_seen, 
                     running_jobs, 
                     job_queue,
                     job_executable, 
                     job_sender, 
-                    # server_state_order, 
-                    # backup_ip,
+                    server_state_order, 
+                    backup_ip,
                     received_msg, 
                     job_receipt_id,
                     job_running_node):
@@ -84,24 +97,24 @@ def heartbeat_handler(compute_nodes,
 
     job_queue = wait_queue
 
-    # Update backup server with changed server state data structures
-    # copy_job_queue = copy.copy(job_queue)
-    # server_state = serverstate.ServerState(
-    #     compute_nodes=compute_nodes,
-    #     running_jobs=running_jobs,
-    #     job_queue=copy_job_queue,
-    #     job_executable=job_executable,
-    #     job_sender=job_sender,
-    #     job_receipt_id=job_receipt_id,
-    #     state_order=server_state_order)
+    #Update backup server with changed server state data structures
+    copy_job_queue = copy.copy(job_queue)
+    server_state = serverstate.ServerState(
+        compute_nodes=compute_nodes,
+        running_jobs=running_jobs,
+        job_queue=copy_job_queue,
+        job_executable=job_executable,
+        job_sender=job_sender,
+        job_receipt_id=job_receipt_id,
+        state_order=server_state_order)
 
-    # messageutils.make_and_send_message(
-    #     msg_type='BACKUP_UPDATE',
-    #     content=server_state,
-    #     file_path=None,
-    #     to=backup_ip,
-    #     msg_socket=None,
-    #     port=SERVER_SEND_PORT)
+    messageutils.make_and_send_message(
+        msg_type='BACKUP_UPDATE',
+        content=server_state,
+        file_path=None,
+        to=backup_ip,
+        msg_socket=None,
+        port=SERVER_SEND_PORT)
 
     # Send heartbeat message to computing node
     # Creating new process to wait and reply to heartbeat messages
@@ -120,8 +133,8 @@ def job_submit_handler(job_queue,
                        job_running_node,
                        job_executable,
                        job_receipt_id,
-                    #    backup_ip,
-                    #    server_state_order
+                        backup_ip,
+                        server_state_order
                 ):
     """Handler function for JOB_SUBMIT messages.
 
@@ -176,24 +189,25 @@ def job_submit_handler(job_queue,
         job_running_node=job_running_node
         )
 
-    # Update backup server with changed server state data structures
-    # copy_job_queue = copy.copy(job_queue)
-    # server_state = serverstate.ServerState(
-    #     compute_nodes=compute_nodes,
-    #     running_jobs=running_jobs,
-    #     job_queue=copy_job_queue,
-    #     job_executable=job_executable,
-    #     job_receipt_id=job_receipt_id,
-    #     job_sender=job_sender,
-    #     state_order=server_state_order)
+    #Update backup server with changed server state data structures
+    copy_job_queue = copy.copy(job_queue)
+    server_state = serverstate.ServerState(
+        compute_nodes=compute_nodes,
+        running_jobs=running_jobs,
+        job_queue=copy_job_queue,
+        job_executable=job_executable,
+        job_receipt_id=job_receipt_id,
+        job_sender=job_sender,
+        state_order=server_state_order)
 
-    # messageutils.make_and_send_message(
-    #     msg_type='BACKUP_UPDATE',
-    #     content=server_state,
-    #     file_path=None,
-    #     to=backup_ip,
-    #     msg_socket=None,
-    #     port=SERVER_SEND_PORT)
+    messageutils.make_and_send_message(
+        msg_type='BACKUP_UPDATE',
+        content=server_state,
+        file_path=None,
+        to=backup_ip,
+        msg_socket=None,
+        port=SERVER_SEND_PORT)
+
     messageutils.make_and_send_message(
         msg_type='ACK_JOB_SUBMIT',
         content=job.receipt_id,
@@ -208,8 +222,8 @@ def executed_job_handler(job_queue,
                          running_jobs,
                          job_sender,
                          job_executable,
-                        #  server_state_order,
-                        #  backup_ip,
+                         server_state_order,
+                         backup_ip,
                          job_receipt_id,
                          received_msg,
                          job_running_node):
@@ -289,24 +303,24 @@ def executed_job_handler(job_queue,
             running_jobs=running_jobs,
             job_running_node=job_running_node)
 
-    # Update backup server with changed server state data structures
-    # copy_job_queue = copy.copy(job_queue)
-    # server_state = serverstate.ServerState(
-    #     compute_nodes=compute_nodes,
-    #     running_jobs=running_jobs,
-    #     job_queue=copy_job_queue,
-    #     job_executable=job_executable,
-    #     job_sender=job_sender,
-    #     job_receipt_id=job_receipt_id,
-    #     state_order=server_state_order)
+    #Update backup server with changed server state data structures
+    copy_job_queue = copy.copy(job_queue)
+    server_state = serverstate.ServerState(
+        compute_nodes=compute_nodes,
+        running_jobs=running_jobs,
+        job_queue=copy_job_queue,
+        job_executable=job_executable,
+        job_sender=job_sender,
+        job_receipt_id=job_receipt_id,
+        state_order=server_state_order)
 
-    # messageutils.make_and_send_message(
-    #     msg_type='BACKUP_UPDATE',
-    #     content=server_state,
-    #     file_path=None,
-    #     to=backup_ip,
-    #     msg_socket=None,
-    #     port=SERVER_SEND_PORT)
+    messageutils.make_and_send_message(
+        msg_type='BACKUP_UPDATE',
+        content=server_state,
+        file_path=None,
+        to=backup_ip,
+        msg_socket=None,
+        port=SERVER_SEND_PORT)
 
     messageutils.make_and_send_message(
         msg_type='ACK_EXECUTED_JOB',
@@ -382,26 +396,65 @@ def schedule_and_send_job(job,
 
 
 def kill_job_handler(
-                    job_receipt_id,
-                    running_jobs,
-                    job_executable,
-                    job_sender,
-                    job_running_node,
+                            job_queue,
+                            compute_nodes,
+                            job_receipt_id,
+                            running_jobs,
+                            job_executable,
+                            job_sender,
+                            job_running_node,
+                            backup_ip,
+                            server_state_order
                     ):
 
     # job = received_msg.content
     kill_job_msg = message.Message(
         msg_type = 'KILL_JOB', content=job_receipt_id)
-
-    running_node = job_running_node[job_receipt_id]
-
-    del job_sender[job_receipt_id]
-    del job_executable[job_receipt_id]
     
-    # if job in running_jobs[running_node]:
-    #     running_jobs[running_node].remove(job)
-    messageutils.send_message(msg=kill_job_msg,to=running_node, port=network_params.COMPUTE_NODE_RECV_PORT)
-    print('SENDING KILL_JOB:', job_receipt_id)
+
+
+    if job_receipt_id not in job_running_node:
+        temp_queue = job_queue.queue
+        for job in temp_queue:
+            if job[1].job_receipt_id==job_receipt_id:
+                temp_queue.remove(job)
+        job_queue.queue = temp_queue
+        #modified_queue = priorityqueue.JobQueue()
+        #for job in temp_queue:
+        #    modified_queue.push(job)
+    else:            
+        running_node = job_running_node[job_receipt_id]
+
+        del job_sender[job_receipt_id]
+        del job_executable[job_receipt_id]
+        
+        for job in running_jobs[running_node]:
+            if job.receipt_id==job_receipt_id:
+                running_jobs[running_node].remove(job)
+        #modified_queue = job_queue
+        messageutils.send_message(msg=kill_job_msg,to=running_node, port=network_params.COMPUTE_NODE_RECV_PORT)
+        print('SENDING KILL_JOB:', job_receipt_id)
+    
+     #Update backup server with changed server state data structures
+    copy_job_queue = copy.copy(job_queue)
+    server_state = serverstate.ServerState(
+        compute_nodes=compute_nodes,
+        running_jobs=running_jobs,
+        job_queue=copy_job_queue,
+        job_executable=job_executable,
+        job_sender=job_sender,
+        job_receipt_id=job_receipt_id,
+        state_order=server_state_order)
+
+    messageutils.make_and_send_message(
+        msg_type='BACKUP_UPDATE',
+        content=server_state,
+        file_path=None,
+        to=backup_ip,
+        msg_socket=None,
+        port=SERVER_SEND_PORT)
+    
+    return job_queue
 
 def ack_job_kill_handler(
                         content
