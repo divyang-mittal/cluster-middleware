@@ -100,15 +100,15 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-serverip", help="IP address of central server",
                         type=str, required=False)
-    # parser.add_argument("-backupip", help="IP address of backup server",
-                        # type=str, required=True)
+    parser.add_argument("-backupip", help="IP address of backup server",
+                         type=str, required=True)
     parser.add_argument("-selfip", help="IP address of self",
                         type=str, required=True)
     args = vars(parser.parse_args())
 
     # Obtain server and backup ip's from the arguments
     server_ip = network_params.SERVER_IP
-    # backup_ip = args['backupip']
+    backup_ip = args['backupip']
     self_ip = args['selfip']
 
     manager = mp.Manager()
@@ -169,8 +169,22 @@ def main():
         #     message_handlers.ack_job_submit_msg_handler(
         #         msg, shared_acknowledged_jobs_array)
 
+        if msg.sender == backup_ip and msg.msg_type == 'I_AM_NEW_SERVER':
+            # Primary server crash detected by backup server
+            # switch primary and backup server ips
+            server_ip, backup_ip = backup_ip, server_ip
+            time.sleep(SERVER_CHANGE_WAIT_TIME)
+            message_handlers.server_crash_msg_handler(
+                shared_submitted_jobs_array,
+                shared_acknowledged_jobs_array,
+                executed_jobs_receipt_ids,
+                ack_executed_jobs_receipt_ids,
+                server_ip)
 
-        if msg.msg_type == 'HEARTBEAT':
+        elif msg.sender == backup_ip:
+            # Old message from a server detected to have crashed, ignore
+            continue
+        elif msg.msg_type == 'HEARTBEAT':
             # Removing pycharm's annoying unused warning for shared variable
             # noinspection PyUnusedLocal
                 print("HEARTBEAT RECEIVED IN COMPUTE_NODE")
