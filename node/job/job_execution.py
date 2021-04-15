@@ -84,8 +84,8 @@ def execute_job(current_job,
         # Save job object as pickle in it's local directory. This is done
         # so that preempted_job_msg can be replayed if server goes down
         # before receiving/acknowledging it
-        with open(job_pickle_file, 'wb') as _handle:
-            pickle.dump(current_job, _handle, protocol=pickle.HIGHEST_PROTOCOL)
+        # with open(job_pickle_file, 'wb') as _handle:
+        #     pickle.dump(current_job, _handle, protocol=pickle.HIGHEST_PROTOCOL)
 
         # Prepare and send executed job information message to parent
         executed_jobs_receipt_ids[job_id] = 0
@@ -147,13 +147,14 @@ def execute_job(current_job,
         # Save job object as pickle in it's local directory. This is done
         # so that job_completion_msg can be replayed if server goes down
         # before receiving/acknowledging it
-        with open(job_pickle_file, 'wb') as handle:
-            pickle.dump(current_job, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        # with open(job_pickle_file, 'wb') as handle:
+        #     pickle.dump(current_job, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
         # Prepare and send job completion message to parent
         # executed_jobs_receipt_ids[job_id] = 0
         executed_jobs_receipt_ids[job_id] = 0
         
+        print('Sending executed job to parent')
         messageutils.make_and_send_message(
             msg_type='EXECUTED_JOB_TO_PARENT',
             content=current_job,
