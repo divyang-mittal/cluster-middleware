@@ -9,12 +9,26 @@ from ...messaging import network_params
 from ...messaging import message 
 from ...messaging import messageutils
 import getpass
+from texttable import Texttable
 
 # parser = argparse.ArgumentParser()
 # parser.add_argument("-s", "--Stats")
 
 # args = parser.parse_args()
 # username = getpass.getuser()
+
+def print_stats(job_list):
+	rows = []
+	rows.append(["JobID", "Status", "Name", "Running time"])
+	for job in job_list:
+		rows.append([job['job_receipt_id'], job['status'], job['name'], job['runtime']])
+
+	table = Texttable()
+	table.add_rows(rows)
+	print(table.draw())
+	print()
+
+
 
 
 while(True):
@@ -38,8 +52,9 @@ while(True):
 		assert isinstance(msg, message.Message), "Can't specify the message type"
 
 		if(msg.msg_type == "ACK_STATS_RESULT_MSG"):
-			print('STATS RECEIVED')
-			print(msg.content)
+			print('STATS')
+			print_stats(msg.content)
+			# print(msg.content)
 		break
 
 
