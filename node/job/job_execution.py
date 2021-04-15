@@ -17,6 +17,8 @@ from ...messaging import messageutils
 from ...messaging import network_params
 from threading import Timer
 import shlex
+import traceback
+
 
 JOB_PICKLE_FILE = '/job.pickle'
 
@@ -116,13 +118,18 @@ def execute_job(current_job,
         maxsize = current_job.max_memory * 1024 * 1024
         resource.setrlimit(resource.RLIMIT_AS, (maxsize, hard))
         subprocess.run(cmd, stdout=out_file, stderr=err_file, timeout=current_job.time_required)
+
+        print('Job executed successfully')
     
-    except subprocess.TimeoutExpired:
-        err_file.write('Error: Timeout')
+    except:
+        err_file.write('Error: ')
+        err_file.write(traceback.format_exc())
+        print("Error")
 
 
     finally:
         out_file.close()
+        err_file.close()
         # Execution call completed
         end_time = time.time()
 
@@ -146,7 +153,7 @@ def execute_job(current_job,
         # Prepare and send job completion message to parent
         # executed_jobs_receipt_ids[job_id] = 0
         executed_jobs_receipt_ids[job_id] = 0
-        print('Job executed successfully')
+        
         messageutils.make_and_send_message(
             msg_type='EXECUTED_JOB_TO_PARENT',
             content=current_job,
