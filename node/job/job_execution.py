@@ -11,9 +11,12 @@ import signal
 import stat
 import time
 import subprocess
+import resource
 
 from ...messaging import messageutils
 from ...messaging import network_params
+from threading import Timer
+import shlex
 
 JOB_PICKLE_FILE = '/job.pickle'
 
@@ -46,6 +49,9 @@ def execute_job(current_job,
     # File where updated job object will be stored
     job_pickle_file = current_job_directory + JOB_PICKLE_FILE
 
+    out_file = open(os.path.join(current_job_directory, f'out{job_id}.out'), 'w')
+    err_file = open(os.path.join(current_job_directory, f'err{job_id}.out'), 'w')
+
     # noinspection PyUnusedLocal
     def sigint_handler(signum, frame):
         """Handle sigint signal sent by parent
@@ -56,7 +62,8 @@ def execute_job(current_job,
         :param frame: frame object
         :return: None
         """
-
+        out_file.close()
+        err_file.close()
         preemption_end_time = time.time()
 
         # Update job run time, completion status
@@ -100,38 +107,45 @@ def execute_job(current_job,
     # Begin execution
     # os.system(execution_dst)
     # subprocess.call([execution_dst])
-    out_file = open(os.path.join(current_job_directory, f'out{job_id}.out'), 'w')
-    cmd = executable.split(' ')
+    
+    # cmd = executable.split(' ')
+    cmd = shlex.split(cmd)
     print(cmd)
-    subprocess.run(cmd, stdout=out_file)
-    out_file.close()
-    # Execution call completed
-    end_time = time.time()
+    try:
+        soft, hard = resource.getrlimit(resource.RLIMIT_AS)
+        maxsize = current_job.max_memory * 1024 * 1024
+        resource.setrlimit(resource.RLIMIT_AS, (maxsize, hard))
+        subprocess.run(cmd, stdout=out_file, stderr=err_file, timeout=current_job.time_required)
 
-    # Update job run time
-    current_system_time_run = end_time - start_time
-    current_job.time_run += current_system_time_run
+    finally:
+        out_file.close()
+        # Execution call completed
+        end_time = time.time()
 
-    # Mark job completion
-    current_job.completed = True
+        # Update job run time
+        current_system_time_run = end_time - start_time
+        current_job.time_run += current_system_time_run
 
-    # Update the job's execution list with (machine name, time_run)
-    current_job.execution_list.append((os.uname()[1],
-                                       current_system_time_run))
+        # Mark job completion
+        current_job.completed = True
 
-    # Save job object as pickle in it's local directory. This is done
-    # so that job_completion_msg can be replayed if server goes down
-    # before receiving/acknowledging it
-    with open(job_pickle_file, 'wb') as handle:
-        pickle.dump(current_job, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        # Update the job's execution list with (machine name, time_run)
+        current_job.execution_list.append((os.uname()[1],
+                                        current_system_time_run))
 
-    # Prepare and send job completion message to parent
-    # executed_jobs_receipt_ids[job_id] = 0
-    executed_jobs_receipt_ids[job_id] = 0
-    print('Job executed successfully')
-    messageutils.make_and_send_message(
-        msg_type='EXECUTED_JOB_TO_PARENT',
-        content=current_job,
-        file_path=None, to=self_ip,
-        msg_socket=None,
-        port=network_params.COMPUTE_NODE_RECV_PORT)
+        # Save job object as pickle in it's local directory. This is done
+        # so that job_completion_msg can be replayed if server goes down
+        # before receiving/acknowledging it
+        with open(job_pickle_file, 'wb') as handle:
+            pickle.dump(current_job, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+        # Prepare and send job completion message to parent
+        # executed_jobs_receipt_ids[job_id] = 0
+        executed_jobs_receipt_ids[job_id] = 0
+        print('Job executed successfully')
+        messageutils.make_and_send_message(
+            msg_type='EXECUTED_JOB_TO_PARENT',
+            content=current_job,
+            file_path=None, to=self_ip,
+            msg_socket=None,
+            port=network_params.COMPUTE_NODE_RECV_PORT)
