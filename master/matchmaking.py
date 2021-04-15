@@ -53,6 +53,7 @@ def matchmaking(job, compute_nodes, running_jobs):
                     diff_from_max = memory_diff
                     best_candidate = idle_machine
 
+            job.time = time.time()
             running_jobs[best_candidate].append(job)
             return best_candidate, None
 
@@ -65,6 +66,7 @@ def matchmaking(job, compute_nodes, running_jobs):
                     best_candidate = node_id
 
             try:
+                job.time = time.time()
                 running_jobs[best_candidate].append(job)
             except KeyError:
                 # All nodes have crashed. The job can not be scheduled.
@@ -95,6 +97,6 @@ def matchmaking(job, compute_nodes, running_jobs):
                     best_candidate = node_id
 
         if best_candidate is not None:
-            job.time_run = time.time()
+            job.time = time.time()
             running_jobs[best_candidate].append(job)
         return best_candidate, job_to_preempt

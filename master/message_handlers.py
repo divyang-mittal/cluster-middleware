@@ -435,7 +435,8 @@ def stats_job_handler(
             temp_job_status['status'] = 'running'
             temp_job_status['job_receipt_id'] = cur_job.receipt_id
             temp_job_status['name'] = cur_job.name
-            temp_job_status['runtime'] = time.time() - cur_job.time_run
+            temp_job_status['runtime'] = time.time() - cur_job.time
+            # print("running time : " + str(cur_job.time_run))
             jobs_status.append(temp_job_status)
 
     temp_queue = job_queue.queue
