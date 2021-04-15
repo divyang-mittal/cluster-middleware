@@ -27,6 +27,7 @@ def heartbeat_handler(received_msg):
     :param received_msg: message, received message.
     :return: ServerState object received from central server.
     """
+    print("heartbeat of backup sent to master")
     messageutils.send_heartbeat(to=received_msg.sender, port=network_params.SERVER_RECV_PORT)
 
 

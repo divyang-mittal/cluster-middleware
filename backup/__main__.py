@@ -104,7 +104,8 @@ def main():
     msg_socket = socket.socket()
     msg_socket.bind(('', network_params.BACKUP_RECV_PORT))
     msg_socket.listen(5)
-
+    
+    print("first_heartbeat to server")
     # Send first heartbeat to server
     messageutils.send_heartbeat(to=server_ip, port=network_params.SERVER_RECV_PORT)
 

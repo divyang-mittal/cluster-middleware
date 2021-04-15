@@ -24,7 +24,7 @@ def heartbeat_from_backup_handler(received_msg):
     """Handler function for HEARTBEAT messages from backup server..
     :param received_msg: message, received message.
     """
-
+    print("sent heartbeat to backup")
     # Send heartbeat message to backup server
     # Creating new process to wait and reply to heartbeat messages
     process_wait_send_heartbeat_to_backup = mp.Process(
