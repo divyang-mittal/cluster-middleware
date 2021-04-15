@@ -60,6 +60,7 @@ class Job:
         self.max_memory = int(max_memory)
 
         # Job state
+        self.time = 0
         self.time_run = 0
         self.completed = False
         self.execution_list = []

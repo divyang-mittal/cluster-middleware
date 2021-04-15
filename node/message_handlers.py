@@ -21,9 +21,74 @@ from .job import job_execution
 from ..messaging import messageutils
 from ..messaging import network_params
 
-SUBMITTED_JOB_DIRECTORY_PREFIX = './submit_job'
-EXECUTING_JOB_DIRECTORY_PREFIX = './exec_job'
-JOB_PICKLE_FILE = '/job.pickle'
+SUBMITTED_JOB_DIRECTORY_PREFIX = './sharedfolder/submit_job'
+EXECUTING_JOB_DIRECTORY_PREFIX = './sharedfolder/exec_job'
+JOB_PICKLE_FILE = '/sharedfolder/job.pickle'
+
+
+def heartbeat_msg_handler(#shared_job_array,
+                        #   shared_submitted_jobs_array,
+                          executing_jobs_receipt_ids,
+                          executed_jobs_receipt_ids,
+                          executing_jobs_required_times,
+                          executing_jobs_begin_times,
+                          execution_jobs_pid_dict,
+                          server_ip):
+    """Scan job_array for jobs queued up for submission, send to server.
+    :param shared_job_array: shared mp.array, idx set to true if a job idx ever
+        requested submission
+    :param shared_submitted_jobs_array: shared mp.Array, where idx is set
+        to True if job has been submitted to server
+    :param executed_jobs_receipt_ids: set, receipt ids of all executed jobs
+    :param executing_jobs_receipt_ids: set, receipt ids of all executed/ing jobs
+    :param executing_jobs_required_times: dict, receipt id:required time
+    :param executing_jobs_begin_times: dict
+    :param execution_jobs_pid_dict: dict, receipt id: executing child pid
+    :param server_ip: str, ip address of server
+    :return: float, heartbeat receive time
+    """
+    # Record receive time of heartbeat message
+    heartbeat_recv_time = time.time()
+
+    # for itr in range(len(shared_job_array)):
+
+    #     if shared_job_array[itr] and not shared_submitted_jobs_array[itr]:
+    #         # Submit job to server
+    #         submit_job(job_id=itr, server_ip=server_ip)
+    #         print('Submitted job s_id = %d to server\n\n>>>' % itr, end=' ')
+    #         # Update shared_submitted_jobs_array
+    #         shared_submitted_jobs_array[itr] = True
+    #         # TODO: Add log entry here
+
+    itr = 0
+    for job_id in set(executing_jobs_receipt_ids.keys()) - \
+                  set(executed_jobs_receipt_ids.keys()):
+        if itr >= 2:
+            break
+        # time_run = time.time() - executing_jobs_begin_times[job_id]
+        time_run = time.time() - executing_jobs_begin_times[job_id]
+        if time_run >= executing_jobs_required_times[job_id]:
+            try:
+                executing_child_pid = execution_jobs_pid_dict[job_id]
+                os.kill(executing_child_pid, signal.SIGTERM)
+                time.sleep(3)
+                itr += 1
+            except OSError as err:
+                if err.errno == errno.ESRCH:
+                    # ESRCH: child process no longer exists
+                    resend_executed_job_msg(job_id, server_ip)
+            finally:
+                # Only for safety, not really required.
+                executed_jobs_receipt_ids[job_id] = 0
+
+    # Send heartbeat back to the server
+    num_executing_jobs = len(executing_jobs_receipt_ids.keys())
+    messageutils.send_heartbeat(
+        to=server_ip,
+        port=network_params.SERVER_RECV_PORT,
+        num_executing_jobs=num_executing_jobs)
+
+    return heartbeat_recv_time
 
 
 def job_exec_msg_handler(current_job, job_executable,
@@ -59,15 +124,15 @@ def job_exec_msg_handler(current_job, job_executable,
     if not os.path.exists(current_job_directory):
         os.makedirs(current_job_directory)
 
-    # Store a.out in this directory
-    executable_file_bytes = job_executable
-    execution_dst = current_job_directory + current_job.get_executable_name()
+    # # Store a.out in this directory
+    # executable_file_bytes = job_executable
+    # execution_dst = current_job_directory + current_job.get_executable_name()
 
-    while os.path.isfile(execution_dst):
-        execution_dst = execution_dst + '_preempt'
+    # while os.path.isfile(execution_dst):
+    #     execution_dst = execution_dst + '_preempt'
 
-    with open(execution_dst, 'wb') as file:
-        file.write(executable_file_bytes)
+    # with open(execution_dst, 'wb') as file:
+    #     file.write(executable_file_bytes)
 
     # Book-keeping
     job_id = current_job.receipt_id
@@ -82,7 +147,7 @@ def job_exec_msg_handler(current_job, job_executable,
         # Child process
         # time.sleep(1)
         job_execution.execute_job(
-            current_job, execution_dst, current_job_directory,
+            current_job, current_job.executable, current_job_directory,
             execution_jobs_pid_dict, executing_jobs_required_times,
             executed_jobs_receipt_ids=executed_jobs_receipt_ids,
             self_ip=self_ip)
@@ -184,6 +249,7 @@ def job_kill_msg_handler(msg,
         del executing_jobs_receipt_ids[job_receipt_id]
     except OSError as err:
         if err.errno == errno.ESRCH:
+            pass
             # ESRCH: child process no longer exists
             # This implies that either this job was preempted, and this
             # preemption message is a duplicate from switched server, or
@@ -193,7 +259,7 @@ def job_kill_msg_handler(msg,
             # we resend the EXECUTED_JOB msg for safety.
             # Ideally, it should be not be possible to come to this section
             # due to initial check on executed_jobs_receipt_ids
-            resend_executed_job_msg(job_receipt_id, server_ip)
+            # resend_executed_job_msg(job_receipt_id, network_params.SERVER_RECV_PORT)
 
 
 def executed_job_to_parent_msg_handler(msg, executed_jobs_receipt_ids,
@@ -213,8 +279,8 @@ def executed_job_to_parent_msg_handler(msg, executed_jobs_receipt_ids,
         msg=msg,
         to=server_ip,
         msg_socket=None,
-        port=network_params.CLIENT_SEND_PORT)
-    print('Sending executed job r_id=%d\n\n>>>' % msg.content.receipt_id,
+        port=network_params.SERVER_RECV_PORT)
+    print('Sending executed job id=%d' % msg.content.receipt_id,
           end=' ')
 
 
@@ -229,29 +295,29 @@ def ack_executed_job_msg_handler(msg, ack_executed_jobs_receipt_ids):
     ack_executed_jobs_receipt_ids[job_receipt_id] = 0
 
 
-def server_crash_msg_handler(shared_submitted_jobs_array,
-                             shared_acknowledged_jobs_array,
-                             executed_jobs_receipt_ids,
-                             ack_executed_jobs_receipt_ids, server_ip):
-    """Handle a message recvd from server fault detecting child process about
-    an assumed server crash at server_ip
+# def server_crash_msg_handler(shared_submitted_jobs_array,
+#                              shared_acknowledged_jobs_array,
+#                              executed_jobs_receipt_ids,
+#                              ack_executed_jobs_receipt_ids, server_ip):
+#     """Handle a message recvd from server fault detecting child process about
+#     an assumed server crash at server_ip
 
-    :param shared_submitted_jobs_array: mp.Array with type int,
-        contains submission id of jobs
-    :param shared_acknowledged_jobs_array: mp.Array, acknowledged submitted jobs
-    :param executed_jobs_receipt_ids: set, receipt ids of executed jobs
-    :param ack_executed_jobs_receipt_ids: set, receipt ids of acknowledged
-        executed jobs
-    :param server_ip: str, ip address of server
-    """
+#     :param shared_submitted_jobs_array: mp.Array with type int,
+#         contains submission id of jobs
+#     :param shared_acknowledged_jobs_array: mp.Array, acknowledged submitted jobs
+#     :param executed_jobs_receipt_ids: set, receipt ids of executed jobs
+#     :param ack_executed_jobs_receipt_ids: set, receipt ids of acknowledged
+#         executed jobs
+#     :param server_ip: str, ip address of server
+#     """
     # send first heartbeat to new primary server
-    messageutils.send_heartbeat(
-        to=server_ip, port=network_params.CLIENT_SEND_PORT)
+    # messageutils.send_heartbeat(
+    #     to=server_ip, port=network_params.COMPUTE_NODE_SEND_PORT)
     # Replay all non-ack messages
-    replay_non_ack_msgs(shared_submitted_jobs_array,
-                        shared_acknowledged_jobs_array,
-                        executed_jobs_receipt_ids,
-                        ack_executed_jobs_receipt_ids, server_ip)
+    # replay_non_ack_msgs(shared_submitted_jobs_array,
+    #                     shared_acknowledged_jobs_array,
+    #                     executed_jobs_receipt_ids,
+    #                     ack_executed_jobs_receipt_ids, server_ip)
 
 
 # Helper Functions
@@ -278,38 +344,38 @@ def resend_executed_job_msg(job_receipt_id, server_ip):
         file_path=None,
         to=server_ip,
         msg_socket=None,
-        port=network_params.CLIENT_SEND_PORT)
+        port=network_params.COMPUTE_NODE_SEND_PORT)
 
 
-def replay_non_ack_msgs(shared_submitted_jobs_array,
-                        shared_acknowledged_jobs_array,
-                        executed_jobs_receipt_ids,
-                        ack_executed_jobs_receipt_ids, server_ip):
-    """Send all non ack messages to server.
+# def replay_non_ack_msgs(shared_submitted_jobs_array,
+#                         shared_acknowledged_jobs_array,
+#                         executed_jobs_receipt_ids,
+#                         ack_executed_jobs_receipt_ids, server_ip):
+#     """Send all non ack messages to server.
 
-    Use the book-keeping arrays and sets to find the non ack messages
+#     Use the book-keeping arrays and sets to find the non ack messages
 
-    :param shared_submitted_jobs_array: mp.Array with type int,
-        contains submission id of jobs
-    :param shared_acknowledged_jobs_array: mp.Array, acknowledged submitted jobs
-    :param executed_jobs_receipt_ids: set, receipt ids of executed jobs
-    :param ack_executed_jobs_receipt_ids: set, receipt ids of acknowledged
-        executed jobs
-    :param server_ip: str, id address of server
-    """
-    for itr, elem in enumerate(shared_submitted_jobs_array):
-        if elem and not shared_acknowledged_jobs_array[itr]:
-            # Non acknowledged job submission, resend job
-            print('Replaying non-acked SUBMIT_JOB for job s_id =', itr,
-                  '\n\n>>>', end=' ')
-            submit_job(job_id=itr, server_ip=server_ip)
+#     :param shared_submitted_jobs_array: mp.Array with type int,
+#         contains submission id of jobs
+#     :param shared_acknowledged_jobs_array: mp.Array, acknowledged submitted jobs
+#     :param executed_jobs_receipt_ids: set, receipt ids of executed jobs
+#     :param ack_executed_jobs_receipt_ids: set, receipt ids of acknowledged
+#         executed jobs
+#     :param server_ip: str, id address of server
+#     """
+#     for itr, elem in enumerate(shared_submitted_jobs_array):
+#         if elem and not shared_acknowledged_jobs_array[itr]:
+#             # Non acknowledged job submission, resend job
+#             print('Replaying non-acked SUBMIT_JOB for job s_id =', itr,
+#                   '\n\n>>>', end=' ')
+#             submit_job(job_id=itr, server_ip=server_ip)
 
-    non_ack_executing_jobs = \
-        set(executed_jobs_receipt_ids.keys()) - \
-        set(ack_executed_jobs_receipt_ids.keys())
+#     non_ack_executing_jobs = \
+#         set(executed_jobs_receipt_ids.keys()) - \
+#         set(ack_executed_jobs_receipt_ids.keys())
 
-    for receipt_id in non_ack_executing_jobs:
-        # Non acknowledged executed job msg, resend message
-        print('Replaying non-acked EXECUTED_JOB for job r_id =', receipt_id,
-              '\n\n>>>', end=' ')
-        resend_executed_job_msg(job_receipt_id=receipt_id, server_ip=server_ip)
+#     for receipt_id in non_ack_executing_jobs:
+#         # Non acknowledged executed job msg, resend message
+#         print('Replaying non-acked EXECUTED_JOB for job r_id =', receipt_id,
+#               '\n\n>>>', end=' ')
+#         resend_executed_job_msg(job_receipt_id=receipt_id, server_ip=server_ip)
