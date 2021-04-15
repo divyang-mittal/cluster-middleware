@@ -109,7 +109,7 @@ def execute_job(current_job,
     # subprocess.call([execution_dst])
     
     # cmd = executable.split(' ')
-    cmd = shlex.split(cmd)
+    cmd = shlex.split(executable)
     print(cmd)
     try:
         soft, hard = resource.getrlimit(resource.RLIMIT_AS)
