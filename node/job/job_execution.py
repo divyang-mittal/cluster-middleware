@@ -109,13 +109,17 @@ def execute_job(current_job,
     # subprocess.call([execution_dst])
     
     # cmd = executable.split(' ')
-    cmd = shlex.split(cmd)
+    cmd = shlex.split(executable)
     print(cmd)
     try:
         soft, hard = resource.getrlimit(resource.RLIMIT_AS)
         maxsize = current_job.max_memory * 1024 * 1024
         resource.setrlimit(resource.RLIMIT_AS, (maxsize, hard))
         subprocess.run(cmd, stdout=out_file, stderr=err_file, timeout=current_job.time_required)
+    
+    except subprocess.TimeoutExpired:
+        err_file.write('Error: Timeout')
+
 
     finally:
         out_file.close()
