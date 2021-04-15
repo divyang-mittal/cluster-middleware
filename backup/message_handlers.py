@@ -12,7 +12,7 @@ import sys
 import signal
 
 from ..messaging import messageutils
-
+from ..messaging import network_params
 
 
 

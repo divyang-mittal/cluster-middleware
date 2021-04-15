@@ -35,7 +35,7 @@ import time
 from . import message_handlers
 from ..messaging import message
 from ..messaging import messageutils
-
+from ..messaging import network_params
 
 BUFFER_SIZE = 1048576
 CRASH_ASSUMPTION_TIME = 20  # seconds
