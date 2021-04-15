@@ -1,0 +1,1 @@
+python -m cluster-middleware.backup.__main__ -serverip 52.66.150.21 -backup-ip 3.143.210.184
