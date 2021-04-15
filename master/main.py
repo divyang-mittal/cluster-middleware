@@ -239,7 +239,7 @@ def main():
                         print("HEARTBEAT RECEIVED IN SERVER")
                         if msg.sender == backup_ip:
                             print("HEARTBEAT from backup yeh")
-                             message_handlers.heartbeat_from_backup_handler(
+                            message_handlers.heartbeat_from_backup_handler(
                                  received_msg=msg)
 
                         else:
