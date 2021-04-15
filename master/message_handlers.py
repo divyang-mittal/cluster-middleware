@@ -19,8 +19,6 @@ from ..messaging import network_params
 from . import priorityqueue
 from . import serverstate
 
-SERVER_SEND_PORT = 5005
-SERVER_RECV_PORT = 5006
 
 def heartbeat_from_backup_handler(received_msg):
     """Handler function for HEARTBEAT messages from backup server..
@@ -31,7 +29,7 @@ def heartbeat_from_backup_handler(received_msg):
     # Creating new process to wait and reply to heartbeat messages
     process_wait_send_heartbeat_to_backup = mp.Process(
         target=messageutils.wait_send_heartbeat_to_backup,
-        args=(received_msg.sender, SERVER_SEND_PORT, None,)
+        args=(received_msg.sender, network_params.BACKUP_RECV_PORT, None,)
     )
     process_wait_send_heartbeat_to_backup.start()
 
@@ -114,7 +112,7 @@ def heartbeat_handler(compute_nodes,
         file_path=None,
         to=backup_ip,
         msg_socket=None,
-        port=SERVER_SEND_PORT)
+        port=network_params.BACKUP_RECV_PORT)
 
     # Send heartbeat message to computing node
     # Creating new process to wait and reply to heartbeat messages
@@ -172,7 +170,7 @@ def job_submit_handler(job_queue,
     #         content=job.submission_id,
     #         file_path=None,
     #         to=received_msg.sender,
-    #         port=SERVER_SEND_PORT,
+    #         port=network_params.SERVER_SEND_PORT,
     #         msg_socket=None)
     #     return
 
@@ -206,7 +204,7 @@ def job_submit_handler(job_queue,
         file_path=None,
         to=backup_ip,
         msg_socket=None,
-        port=SERVER_SEND_PORT)
+        port=network_params.BACKUP_RECV_PORT)
 
     messageutils.make_and_send_message(
         msg_type='ACK_JOB_SUBMIT',
@@ -258,7 +256,7 @@ def executed_job_handler(job_queue,
             content=executed_job.receipt_id,
             file_path=None,
             to=received_msg.sender,
-            port=SERVER_SEND_PORT,
+            port=network_params.SERVER_SEND_PORT,
             msg_socket=None)
 
         return job_queue
@@ -320,14 +318,14 @@ def executed_job_handler(job_queue,
         file_path=None,
         to=backup_ip,
         msg_socket=None,
-        port=SERVER_SEND_PORT)
+        port=network_params.BACKUP_RECV_PORT)
 
     messageutils.make_and_send_message(
         msg_type='ACK_EXECUTED_JOB',
         content=executed_job.receipt_id,
         file_path=None,
         to=received_msg.sender,
-        port=SERVER_SEND_PORT,
+        port=network_params.SERVER_SEND_PORT,
         msg_socket=None)
 
     return job_queue
@@ -452,7 +450,7 @@ def kill_job_handler(
         file_path=None,
         to=backup_ip,
         msg_socket=None,
-        port=SERVER_SEND_PORT)
+        port=network_params.BACKUP_RECV_PORT)
     
     return job_queue
 
@@ -474,7 +472,7 @@ def stats_job_handler(
     #     msg_type = 'STATS_JOB', content=job, file=executable)
     # running_node = job_running_node[job.receipt_id]
     
-    # messageutils.send_message(msg=stats_job_msg,to=running_node, port=SERVER_SEND_PORT)
+    # messageutils.send_message(msg=stats_job_msg,to=running_node, port=network_params.SERVER_SEND_PORT)
     # print('SENDING STATS_JOB:', job.receipt_id)
     # content = running_jobs
     # content = {'running_jobs' : running_jobs, 'job_queue' : job_queue }

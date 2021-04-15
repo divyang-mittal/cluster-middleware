@@ -16,5 +16,8 @@ SERVER_IP = '52.66.150.21'
 SERVER_SEND_PORT = 5005
 SERVER_RECV_PORT = 5006
 
+BACKUP_SEND_PORT = 5003
+BACKUP_RECV_PORT = 5004
+
 # Time (in sec) after which it's assumed that a communicating node has crashed
 CRASH_ASSUMPTION_TIME = 10

@@ -14,12 +14,7 @@ import signal
 from ..messaging import messageutils
 
 
-CLIENT_RECV_PORT = 5005
-CLIENT_SEND_PORT = 5006
 
-# Only in case backup takes over as central server
-SERVER_SEND_PORT = 5005
-SERVER_RECV_PORT = 5006
 
 BACKUP_SERVER_STATE_PATH = '/home/ubuntu/sharedfolder/backup_state.pkl'
 
@@ -32,7 +27,7 @@ def heartbeat_handler(received_msg):
     :param received_msg: message, received message.
     :return: ServerState object received from central server.
     """
-    messageutils.send_heartbeat(to=received_msg.sender, port=CLIENT_SEND_PORT)
+    messageutils.send_heartbeat(to=received_msg.sender, port=network_params.SERVER_RECV_PORT)
 
 
 def backup_update_handler(received_msg, previous_server_state):
@@ -77,11 +72,11 @@ def server_crash_handler(server_state, crashed_server_ip, backup_ip, child_pid,
             file_path=None,
             to=node_id,
             msg_socket=None,
-            port=SERVER_SEND_PORT)
+            port=network_params.COMPUTE_NODE_RECV_PORT)
 
     socket_to_close.close()
     start_server_command = (
-        'python3 -m ds-project.server --server-ip {server_ip} --backup-ip '
+        'python3 -m cluster-middleware.master.main --server-ip {server_ip} --backup-ip '
         '{backup_ip}'.format(
             server_ip=backup_ip,
             backup_ip=crashed_server_ip))

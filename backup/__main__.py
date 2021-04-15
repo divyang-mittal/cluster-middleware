@@ -36,8 +36,7 @@ from . import message_handlers
 from ..messaging import message
 from ..messaging import messageutils
 
-CLIENT_RECV_PORT = 5005
-CLIENT_SEND_PORT = 5006
+
 BUFFER_SIZE = 1048576
 CRASH_ASSUMPTION_TIME = 20  # seconds
 CRASH_DETECTOR_SLEEP_TIME = 5  # seconds
@@ -70,7 +69,7 @@ def detect_server_crash(server_last_seen_time, backup_ip):
                                                file_path=None,
                                                to=backup_ip,
                                                msg_socket=None,
-                                               port=CLIENT_RECV_PORT)
+                                               port=network_params.BACKUP_RECV_PORT)
 
 
 def main():
@@ -103,11 +102,11 @@ def main():
     # Start listening to incoming connections on CLIENT_RECV_PORT.
     # Server and child processes connect to this socket
     msg_socket = socket.socket()
-    msg_socket.bind(('', CLIENT_RECV_PORT))
+    msg_socket.bind(('', network_params.BACKUP_RECV_PORT))
     msg_socket.listen(5)
 
     # Send first heartbeat to server
-    messageutils.send_heartbeat(to=server_ip, port=CLIENT_SEND_PORT)
+    messageutils.send_heartbeat(to=server_ip, port=network_params.SERVER_RECV_PORT)
 
     while True:
         # Accept an incoming connection
