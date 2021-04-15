@@ -17,7 +17,7 @@ from ..messaging import message
 from ..messaging import messageutils
 from ..messaging import network_params
 from . import priorityqueue
-# from ..utils import serverstate
+from . import serverstate
 
 SERVER_SEND_PORT = 5005
 SERVER_RECV_PORT = 5006
