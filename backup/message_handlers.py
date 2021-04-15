@@ -81,7 +81,7 @@ def server_crash_handler(server_state, crashed_server_ip, backup_ip, child_pid,
 
     socket_to_close.close()
     start_server_command = (
-        'python -m ds-project.server --server-ip {server_ip} --backup-ip '
+        'python3 -m ds-project.server --server-ip {server_ip} --backup-ip '
         '{backup_ip}'.format(
             server_ip=backup_ip,
             backup_ip=crashed_server_ip))
