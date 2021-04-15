@@ -1,5 +1,5 @@
 name: myjob1
-executable: /home/fenris/Documents/8th_semester/DistributedSystems/termProject/FinalOne/cluster-middleware/master/job/a.out
+executable: python /home/ubuntu/cluster-middleware/master/job/test.py
 priority: 5
 time_required: 20
 min_memory: 100

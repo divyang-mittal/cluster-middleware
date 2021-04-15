@@ -1,10 +1,10 @@
 import time
 
-print("FIRST")
+print(" 2   FIRST")
 time.sleep(10)
-print("SECOND")
+print("  33SECOND")
 time.sleep(20)
-print("THIRD")
+print(" 4 THIRD")
 time.sleep(30)
 print("FOUR")
 time.sleep(40)
