@@ -1,9 +1,11 @@
 """File which does the matchmaking of jobs.
 """
+import time
 
 # Minimum CPU availability required
 MIN_CPU_AVAILABILITY = 20
 IDLE_MACHINE_JOB_COUNT = 4
+
 
 
 def matchmaking(job, compute_nodes, running_jobs):
@@ -93,5 +95,6 @@ def matchmaking(job, compute_nodes, running_jobs):
                     best_candidate = node_id
 
         if best_candidate is not None:
+            job.time_run = time.time()
             running_jobs[best_candidate].append(job)
         return best_candidate, job_to_preempt
