@@ -144,7 +144,7 @@ def main():
         required=True,
         help='IP address of primary backup server.')
     args = parser.parse_args()
-    backup_ip = args.backup-ip
+    backup_ip = args.backup_ip
     # server_ip = args.server_ip
 
     print_welcome_message()
@@ -237,6 +237,8 @@ def main():
 
                     if msg.msg_type == 'HEARTBEAT':
                         print("HEARTBEAT RECEIVED IN SERVER")
+                        print(msg.sender)
+                        print(backup_ip)
                         if msg.sender == backup_ip:
                             print("HEARTBEAT from backup yeh")
                             message_handlers.heartbeat_from_backup_handler(
