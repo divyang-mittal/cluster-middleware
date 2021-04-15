@@ -1,5 +1,5 @@
 name: myjob1
-executable: python /home/ubuntu/cluster-middleware/master/job/test2.py
+executable: python3 /home/ubuntu/cluster-middleware/master/job/sample_jobs/test2.py
 priority: 5
 time_required: 20
 min_memory: 100
