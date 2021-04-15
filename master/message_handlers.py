@@ -438,10 +438,10 @@ def stats_job_handler(
             temp_job_status['runtime'] = cur_job.time_run
             jobs_status.append(temp_job_status)
 
-    temp_queue = copy.deepcopy(job_queue)
+    temp_queue = job_queue.queue
 
-    while not temp_queue.empty():
-        cur_job = temp_queue.get()
+    for x in temp_queue:
+        cur_job = x[1]
         temp_job_status = {}
         temp_job_status['status'] = 'queue'
         temp_job_status['job_receipt_id'] = cur_job.receipt_id
