@@ -134,17 +134,17 @@ def detect_node_crash(node_last_seen, server_ip):
 def main():
     # """Get server ip, backup ip, listen for messages and manage jobs.
     # """
-    # parser = argparse.ArgumentParser(description='Set up central server.')
+    parser = argparse.ArgumentParser(description='Set up central server.')
     # parser.add_argument(
     #     '--server-ip',
     #     required=True,
     #     help='IP address of central server (this node).')
-    # parser.add_argument(
-    #     '--backup-ip',
-    #     required=True,
-    #     help='IP address of primary backup server.')
-    # args = parser.parse_args()
-    # backup_ip = args.backup_ip
+    parser.add_argument(
+        '--backup-ip',
+        required=True,
+        help='IP address of primary backup server.')
+    args = parser.parse_args()
+    backup_ip = args.backup_ip
     # server_ip = args.server_ip
 
     print_welcome_message()
