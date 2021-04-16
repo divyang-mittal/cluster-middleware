@@ -97,7 +97,7 @@ def heartbeat_handler(compute_nodes,
     job_queue = wait_queue
 
     #Update backup server with changed server state data structures
-    copy_job_queue = copy.copy(job_queue)
+    copy_job_queue = copy.copy(job_queue.queue)
     server_state = serverstate.ServerState(
         compute_nodes=compute_nodes,
         running_jobs=running_jobs,
@@ -307,7 +307,7 @@ def executed_job_handler(job_queue,
             job_running_node=job_running_node)
 
     #Update backup server with changed server state data structures
-    copy_job_queue = copy.copy(job_queue)
+    copy_job_queue = copy.copy(job_queue.queue)
     server_state = serverstate.ServerState(
         compute_nodes=compute_nodes,
         running_jobs=running_jobs,
@@ -442,7 +442,7 @@ def kill_job_handler(
         print('SENDING KILL_JOB:', job_receipt_id)
     
      #Update backup server with changed server state data structures
-    copy_job_queue = copy.copy(job_queue)
+    copy_job_queue = copy.copy(job_queue.queue)
     server_state = serverstate.ServerState(
         compute_nodes=compute_nodes,
         running_jobs=running_jobs,
