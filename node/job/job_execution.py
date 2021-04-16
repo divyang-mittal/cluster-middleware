@@ -125,7 +125,9 @@ def execute_job(current_job,
         resource.setrlimit(resource.RLIMIT_AS, (maxsize, hard))
         print('Running for : ', current_job.time_required)
         # subprocess.run(cmd, stdout=out_file, stderr=err_file, timeout=current_job.time_required)
-        child_proc = subprocess.Popen(args=cmd, stdout=out_file, stderr=err_file, timeout=current_job.time_required)
+        child_proc = subprocess.Popen(args=cmd, stdout=out_file, stderr=err_file)
+        timer = Timer(current_job.time_required, child_proc.kill)
+        timer.start()
         print('Job executed successfully')
     
     except:
