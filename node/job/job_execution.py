@@ -55,7 +55,7 @@ def execute_job(current_job,
     out_file = open(os.path.join(current_job_directory, f'out{job_id}.out'), 'w')
     err_file = open(os.path.join(current_job_directory, f'err{job_id}.out'), 'w')
     print('Opened output files')
-
+    child_proc = None
     # noinspection PyUnusedLocal
     def sigint_handler(signum, frame):
         """Handle sigint signal sent by parent
@@ -66,8 +66,13 @@ def execute_job(current_job,
         :param frame: frame object
         :return: None
         """
+        print('Closing files')
         out_file.close()
         err_file.close()
+        print('Closed files')
+
+        child_proc.terminate()
+        
         preemption_end_time = time.time()
 
         # Update job run time, completion status
@@ -119,8 +124,8 @@ def execute_job(current_job,
         maxsize = current_job.max_memory * 1024 * 1024
         resource.setrlimit(resource.RLIMIT_AS, (maxsize, hard))
         print('Running for : ', current_job.time_required)
-        subprocess.run(cmd, stdout=out_file, stderr=err_file, timeout=current_job.time_required)
-
+        # subprocess.run(cmd, stdout=out_file, stderr=err_file, timeout=current_job.time_required)
+        child_proc = subprocess.Popen(args=cmd, stdout=out_file, stderr=err_file, timeout=current_job.time_required)
         print('Job executed successfully')
     
     except:
