@@ -102,14 +102,14 @@ def main():
                         type=str, required=False)
     #parser.add_argument("-backupip", help="IP address of backup server",
     #                     type=str, required=True)
-    #parser.add_argument("-selfip", help="IP address of self",
-    #                   type=str, required=True)
+    parser.add_argument("-selfip", help="IP address of self",
+                       type=str, required=True)
     args = vars(parser.parse_args())
 
     # Obtain server and backup ip's from the arguments
     server_ip = network_params.SERVER_IP
     #backup_ip = args['backupip']
-    #self_ip = args['selfip']
+    self_ip = args['selfip']
 
     manager = mp.Manager()
     # Set-Dict to store all executed and acknowledged executed jobs' receipt ids
