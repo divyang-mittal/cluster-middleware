@@ -14,4 +14,12 @@ sudo kill -9 `sudo lsof -t -i:5007`
 
 python3 -m cluster-middleware.master.user_scripts.submit --Kill 1
 
-COMPUTE-NODE : python3 -m cluster-middleware.node.__main__ -serverip 52.66.150.21 -selfip 65.0.31.113
+(backupnode)
+ssh -i awsD.pem ubuntu@52.66.28.8   
+
+(masternode)
+ssh -i awsD.pem ubuntu@52.66.150.21 
+
+(computenode)
+ssh -i awsD.pem ubuntu@65.0.31.113
+
