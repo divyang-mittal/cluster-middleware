@@ -304,8 +304,9 @@ def main():
                             received_msg=msg)
 
                     elif msg.msg_type == 'KILL_JOB':
+                        print('__________')
+                        print('msg received\n\n')
                         try:
-
                             job_queue = message_handlers.kill_job_handler(
                                 job_queue=job_queue,
                                 compute_nodes=compute_nodes,
@@ -318,12 +319,14 @@ def main():
                                 server_state_order=server_state_order
                             )
                         except:
+                            print('__________')
+                            print('Error')
                             messageutils.make_and_send_message(
                                 msg_type='ERR_JOB_KILL',
                                 content=None,
                                 file_path=None,
                                 to="127.0.0.1",
-                                port= network_params.SUBMIT_RECV_PORT,
+                                port= network_params.KILL_RECV_PORT,
                                 msg_socket=None)                            
 
                     
@@ -341,7 +344,7 @@ def main():
                                 content=None,
                                 file_path=None,
                                 to="127.0.0.1",
-                                port= network_params.SUBMIT_RECV_PORT,
+                                port= network_params.STATS_RECV_PORT,
                                 msg_socket=None)
 
                     elif msg.msg_type == 'ACK_JOB_EXEC':

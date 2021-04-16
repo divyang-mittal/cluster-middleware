@@ -418,17 +418,29 @@ def kill_job_handler(
         msg_type = 'KILL_JOB', content=job_receipt_id)
     
 
-
+    print('Entered kill job handler')
+    is_avail = 0
     if job_receipt_id not in job_running_node:
+        print('Not in job running node')
         temp_queue = job_queue.queue
         for job in temp_queue:
             if job[1].job_receipt_id==job_receipt_id:
+                is_avail = 1
                 temp_queue.remove(job)
         job_queue.queue = temp_queue
         #modified_queue = priorityqueue.JobQueue()
         #for job in temp_queue:
         #    modified_queue.push(job)
-    else:            
+        if is_avail == 0:
+            messageutils.make_and_send_message(
+                msg_type='ERR_JOB_KILL',
+                content=None,
+                file_path=None,
+                to="127.0.0.1",
+                port= network_params.KILL_RECV_PORT,
+                msg_socket=None)
+    else:
+        print('Running job')
         running_node = job_running_node[job_receipt_id]
 
         del job_sender[job_receipt_id]
@@ -460,6 +472,8 @@ def kill_job_handler(
             to=backup_ip,
             msg_socket=None,
             port=network_params.BACKUP_RECV_PORT)
+    
+    print('Returned from handler')
     
     return job_queue
 

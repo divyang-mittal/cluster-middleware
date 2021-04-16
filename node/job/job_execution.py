@@ -71,7 +71,7 @@ def execute_job(current_job,
         err_file.close()
         print('Closed files')
 
-        child_proc.terminate()
+        # child_proc.terminate()
         
         preemption_end_time = time.time()
 
@@ -124,10 +124,10 @@ def execute_job(current_job,
         maxsize = current_job.max_memory * 1024 * 1024
         resource.setrlimit(resource.RLIMIT_AS, (maxsize, hard))
         print('Running for : ', current_job.time_required)
-        # subprocess.run(cmd, stdout=out_file, stderr=err_file, timeout=current_job.time_required)
-        child_proc = subprocess.Popen(args=cmd, stdout=out_file, stderr=err_file)
-        timer = Timer(current_job.time_required, child_proc.kill)
-        timer.start()
+        subprocess.run(cmd, stdout=out_file, stderr=err_file, timeout=current_job.time_required)
+        # child_proc = subprocess.Popen(args=cmd, stdout=out_file, stderr=err_file)
+        # timer = Timer(current_job.time_required, child_proc.kill)
+        # timer.start()
         print('Job executed successfully')
     
     except:

@@ -24,8 +24,7 @@ while(True):
 		listen_socket.bind(listen_address)
 		listen_socket.listen(5)
 		messageutils.make_and_send_message(msg_type = "KILL_JOB" ,content = args.Kill, to = network_params.SERVER_IP, port = network_params.SERVER_RECV_PORT, file_path =None, msg_socket=None)
- 		
-		
+		print('here')
 		connection, client_address = listen_socket.accept()
 
 		data_list = []
