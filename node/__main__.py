@@ -88,6 +88,7 @@ def sigint_handler(signum=signal.SIGINT, frame=None):
         process.send_signal(signal.SIGTERM)
     sys.exit(0)
 
+server_ip = network_params.SERVER_IP
 
 def main():
     """Get server ip, connect with server, listen for messages, submit jobs
@@ -107,7 +108,7 @@ def main():
     args = vars(parser.parse_args())
 
     # Obtain server and backup ip's from the arguments
-    server_ip = network_params.SERVER_IP
+    #server_ip = network_params.SERVER_IP
     #backup_ip = args['backupip']
     self_ip = args['selfip']
 
@@ -172,6 +173,7 @@ def main():
         if msg.msg_type == 'I_AM_NEW_SERVER':
             # Primary server crash detected by backup server
             # switch primary and backup server ips
+            global server_ip
             print('backup is taking over')
             server_ip, backup_ip = msg.sender, None
             print(server_ip)
