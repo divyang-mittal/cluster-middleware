@@ -67,7 +67,6 @@ import socket
 import time
 import copy
 
-
 from . import message_handlers
 from ..messaging import message
 from ..messaging import messageutils

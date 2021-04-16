@@ -14,8 +14,6 @@ import signal
 from ..messaging import messageutils
 from ..messaging import network_params
 
-
-
 BACKUP_SERVER_STATE_PATH = '/home/ubuntu/sharedfolder/backup_state.pkl'
 
 

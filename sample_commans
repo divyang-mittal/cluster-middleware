@@ -22,4 +22,4 @@ ssh -i awsD.pem ubuntu@52.66.150.21
 
 (computenode)
 ssh -i awsD.pem ubuntu@65.0.31.113
-
+ssh -i awsD.pem ubuntu@13.233.33.181 
