@@ -265,18 +265,27 @@ def main():
                         job_receipt_id += 1
                         server_state_order += 1
                         
-                        message_handlers.job_submit_handler(
-                            job_queue=job_queue,
-                            compute_nodes=compute_nodes,
-                            running_jobs=running_jobs,
-                            job_sender=job_sender,
-                            job_running_node=job_running_node,
-                            job_executable=job_executable,
-                            received_msg=msg,
-                            job_receipt_id=job_receipt_id,
-                            backup_ip=backup_ip,
-                            server_state_order=server_state_order
-                        )
+                        try:
+                            message_handlers.job_submit_handler(
+                                job_queue=job_queue,
+                                compute_nodes=compute_nodes,
+                                running_jobs=running_jobs,
+                                job_sender=job_sender,
+                                job_running_node=job_running_node,
+                                job_executable=job_executable,
+                                received_msg=msg,
+                                job_receipt_id=job_receipt_id,
+                                backup_ip=backup_ip,
+                                server_state_order=server_state_order
+                            )
+                        except:
+                            messageutils.make_and_send_message(
+                            msg_type='ERR_JOB_SUBMIT',
+                            content=None,
+                            file_path=None,
+                            to="127.0.0.1",
+                            port= network_params.SUBMIT_RECV_PORT,
+                            msg_socket=None)
 
                     elif msg.msg_type == 'EXECUTED_JOB':
                         server_state_order += 1
@@ -296,25 +305,45 @@ def main():
                             received_msg=msg)
 
                     elif msg.msg_type == 'KILL_JOB':
-                        job_queue = message_handlers.kill_job_handler(
-                            job_queue=job_queue,
-                            compute_nodes=compute_nodes,
-                            job_receipt_id=int(msg.content),
-                            running_jobs=running_jobs,
-                            job_executable=job_executable,
-                            job_sender=job_sender,
-                            job_running_node=job_running_node,
-                            backup_ip=backup_ip,
-                            server_state_order=server_state_order
-                        )
+                        try:
+
+                            job_queue = message_handlers.kill_job_handler(
+                                job_queue=job_queue,
+                                compute_nodes=compute_nodes,
+                                job_receipt_id=int(msg.content),
+                                running_jobs=running_jobs,
+                                job_executable=job_executable,
+                                job_sender=job_sender,
+                                job_running_node=job_running_node,
+                                backup_ip=backup_ip,
+                                server_state_order=server_state_order
+                            )
+                        except:
+                            messageutils.make_and_send_message(
+                                msg_type='ERR_JOB_KILL',
+                                content=None,
+                                file_path=None,
+                                to="127.0.0.1",
+                                port= network_params.SUBMIT_RECV_PORT,
+                                msg_socket=None)                            
+
                     
                         
                     elif msg.msg_type == 'STATS_JOB':
-                        print("STATS RECEIVED IN SERVER")
-                        message_handlers.stats_job_handler(
-                            running_jobs= running_jobs,
-                            job_queue= job_queue,  
-                        )
+                        try:
+                            print("STATS RECEIVED IN SERVER")
+                            message_handlers.stats_job_handler(
+                                running_jobs= running_jobs,
+                                job_queue= job_queue,  
+                            )
+                        except:
+                            messageutils.make_and_send_message(
+                                msg_type='ERR_STATS',
+                                content=None,
+                                file_path=None,
+                                to="127.0.0.1",
+                                port= network_params.SUBMIT_RECV_PORT,
+                                msg_socket=None)
 
                     elif msg.msg_type == 'ACK_JOB_EXEC':
                         message_handlers.ack_ignore_handler()

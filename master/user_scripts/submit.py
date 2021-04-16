@@ -40,6 +40,10 @@ while(True):
 
 		if(msg.msg_type == 'ACK_JOB_SUBMIT'):
 			print("JOB ID: "+ str(msg.content))
+
+		else if(msg.msg_type == 'ERR_JOB_SUBMIT'):
+			print('Job submit unsuccessful')
+			
 			break
 
 
