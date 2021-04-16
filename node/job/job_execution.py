@@ -51,8 +51,10 @@ def execute_job(current_job,
     # File where updated job object will be stored
     job_pickle_file = current_job_directory + JOB_PICKLE_FILE
 
+    print('Opening output files')
     out_file = open(os.path.join(current_job_directory, f'out{job_id}.out'), 'w')
     err_file = open(os.path.join(current_job_directory, f'err{job_id}.out'), 'w')
+    print('Opened output files')
 
     # noinspection PyUnusedLocal
     def sigint_handler(signum, frame):
@@ -110,13 +112,12 @@ def execute_job(current_job,
     # os.system(execution_dst)
     # subprocess.call([execution_dst])
     
-    # cmd = executable.split(' ')
     cmd = shlex.split(executable)
     print(cmd)
     try:
-        soft, hard = resource.getrlimit(resource.RLIMIT_AS)
+        soft, hard = resource.getrlimit(resource.RLIMIT_VMEM)
         maxsize = current_job.max_memory * 1024 * 1024
-        resource.setrlimit(resource.RLIMIT_AS, (maxsize, hard))
+        resource.setrlimit(resource.RLIMIT_VMEM, (maxsize, hard))
         print('Running for : ', current_job.time_required)
         subprocess.run(cmd, stdout=out_file, stderr=err_file, timeout=current_job.time_required)
 
@@ -129,8 +130,10 @@ def execute_job(current_job,
 
 
     finally:
+        print('Closing files')
         out_file.close()
         err_file.close()
+        print('Closed files')
         # Execution call completed
         end_time = time.time()
 
