@@ -129,26 +129,22 @@ def execute_job(current_job,
 
 
     finally:
-        print('Finally')
         out_file.close()
         err_file.close()
-        print('Files closed')
         # Execution call completed
         end_time = time.time()
 
-        print('End time calc')
         # Update job run time
         current_system_time_run = end_time - start_time
         current_job.time_run += current_system_time_run
 
         # Mark job completion
         current_job.completed = True
-        print('Before list append')
+
         # Update the job's execution list with (machine name, time_run)
         current_job.execution_list.append((os.uname()[1],
                                         current_system_time_run))
 
-        print('After list append')
         # Save job object as pickle in it's local directory. This is done
         # so that job_completion_msg can be replayed if server goes down
         # before receiving/acknowledging it
@@ -159,7 +155,6 @@ def execute_job(current_job,
         # executed_jobs_receipt_ids[job_id] = 0
         executed_jobs_receipt_ids[job_id] = 0
         
-        print('Sending executed job to parent')
         messageutils.make_and_send_message(
             msg_type='EXECUTED_JOB_TO_PARENT',
             content=current_job,

@@ -109,7 +109,7 @@ def detect_node_crash(node_last_seen, server_ip):
 
     while True:
         time.sleep(CRASH_DETECTOR_SLEEP_TIME)
-        print('CHECKING CRASH')
+        print('Crash Check')
 
         current_time = time.time()
         crashed_nodes = set()
@@ -239,7 +239,6 @@ def main():
 
 
                     if msg.msg_type == 'HEARTBEAT_BACKUP':
-                        print("HEARTBEAT from backup yeh")
                         backup_ip = msg.sender
                         message_handlers.heartbeat_from_backup_handler(
                                 received_msg=msg)

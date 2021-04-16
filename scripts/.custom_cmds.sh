@@ -3,7 +3,7 @@
 #Job submit
 
 function submit(){
-	python3 /home/ubuntu/cluster-middleware/master/user_scripts/submit.py -j $1
+	python3 -m cluster-middleware.master.user_scripts.submit.py -j $1
 }
 
 #Job kill
