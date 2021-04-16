@@ -13,3 +13,5 @@ python3 -m cluster-middleware.node.__main__ -serverip 127.0.0.1 -selfip 127.0.0.
 sudo kill -9 `sudo lsof -t -i:5007`
 
 python3 -m cluster-middleware.master.user_scripts.submit --Kill 1
+
+COMPUTE-NODE : python3 -m cluster-middleware.node.__main__ -serverip 52.66.150.21 -selfip 65.0.31.113
