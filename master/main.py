@@ -139,13 +139,15 @@ def main():
     #     '--server-ip',
     #     required=True,
     #     help='IP address of central server (this node).')
-    parser.add_argument(
-        '--backup-ip',
-        required=True,
-        help='IP address of primary backup server.')
-    args = parser.parse_args()
-    backup_ip = args.backup_ip
+    # parser.add_argument(
+    #     '--backup-ip',
+    #     required=True,
+    #     help='IP address of primary backup server.')
+    # args = parser.parse_args()
+    # backup_ip = args.backup_ip
     # server_ip = args.server_ip
+    
+    backup_ip = None 
 
     print_welcome_message()
 
@@ -237,6 +239,7 @@ def main():
 
                     if msg.msg_type == 'HEARTBEAT_BACKUP':
                         print("HEARTBEAT from backup yeh")
+                        backup_ip = msg.sender
                         message_handlers.heartbeat_from_backup_handler(
                                 received_msg=msg)
 

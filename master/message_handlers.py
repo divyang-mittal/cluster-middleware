@@ -106,13 +106,14 @@ def heartbeat_handler(compute_nodes,
         job_receipt_id=job_receipt_id,
         state_order=server_state_order)
 
-    messageutils.make_and_send_message(
-        msg_type='BACKUP_UPDATE',
-        content=server_state,
-        file_path=None,
-        to=backup_ip,
-        msg_socket=None,
-        port=network_params.BACKUP_RECV_PORT)
+    if backup_ip is not None:
+        messageutils.make_and_send_message(
+            msg_type='BACKUP_UPDATE',
+            content=server_state,
+            file_path=None,
+            to=backup_ip,
+            msg_socket=None,
+            port=network_params.BACKUP_RECV_PORT)
 
     # Send heartbeat message to computing node
     # Creating new process to wait and reply to heartbeat messages
@@ -198,13 +199,14 @@ def job_submit_handler(job_queue,
         job_sender=job_sender,
         state_order=server_state_order)
 
-    messageutils.make_and_send_message(
-        msg_type='BACKUP_UPDATE',
-        content=server_state,
-        file_path=None,
-        to=backup_ip,
-        msg_socket=None,
-        port=network_params.BACKUP_RECV_PORT)
+    if backup_ip is not None:
+        messageutils.make_and_send_message(
+            msg_type='BACKUP_UPDATE',
+            content=server_state,
+            file_path=None,
+            to=backup_ip,
+            msg_socket=None,
+            port=network_params.BACKUP_RECV_PORT)
 
     messageutils.make_and_send_message(
         msg_type='ACK_JOB_SUBMIT',
@@ -312,13 +314,14 @@ def executed_job_handler(job_queue,
         job_receipt_id=job_receipt_id,
         state_order=server_state_order)
 
-    messageutils.make_and_send_message(
-        msg_type='BACKUP_UPDATE',
-        content=server_state,
-        file_path=None,
-        to=backup_ip,
-        msg_socket=None,
-        port=network_params.BACKUP_RECV_PORT)
+    if backup_ip is not None:
+        messageutils.make_and_send_message(
+            msg_type='BACKUP_UPDATE',
+            content=server_state,
+            file_path=None,
+            to=backup_ip,
+            msg_socket=None,
+            port=network_params.BACKUP_RECV_PORT)
 
     messageutils.make_and_send_message(
         msg_type='ACK_EXECUTED_JOB',
@@ -443,14 +446,15 @@ def kill_job_handler(
         job_sender=job_sender,
         job_receipt_id=job_receipt_id,
         state_order=server_state_order)
-
-    messageutils.make_and_send_message(
-        msg_type='BACKUP_UPDATE',
-        content=server_state,
-        file_path=None,
-        to=backup_ip,
-        msg_socket=None,
-        port=network_params.BACKUP_RECV_PORT)
+    
+    if backup_ip is not None:
+        messageutils.make_and_send_message(
+            msg_type='BACKUP_UPDATE',
+            content=server_state,
+            file_path=None,
+            to=backup_ip,
+            msg_socket=None,
+            port=network_params.BACKUP_RECV_PORT)
     
     return job_queue
 

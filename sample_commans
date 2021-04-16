@@ -2,7 +2,7 @@
 python -m cluster-middleware.master.main
 
 ### for running submit.py
-python -m cluster-middleware.master.user_scripts.submit --JobPath /home/fenris/Documents/8th_semester/DistributedSystems/termProject/FinalOne/cluster-middleware/master/job/sample_jobfile
+python -m cluster-middleware.master.user_scripts.submit --JobPath /home/ubuntu/cluster-middleware/master/job/sample_jobs/sample_jobfile
 
 
 ## for running compute node
