@@ -275,6 +275,7 @@ def executed_job_to_parent_msg_handler(msg, executed_jobs_receipt_ids,
     """
     msg.msg_type = 'EXECUTED_JOB'
     executed_jobs_receipt_ids[msg.content.receipt_id] = 0
+    print('Executed jobs', server_ip)
     messageutils.send_message(
         msg=msg,
         to=server_ip,
