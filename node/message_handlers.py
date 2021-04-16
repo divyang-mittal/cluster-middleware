@@ -314,6 +314,7 @@ def server_crash_msg_handler(
     :param server_ip: str, ip address of server
     """
     # send first heartbeat to new primary server
+    print("first_heartbeat sent to the backup-server")
     messageutils.send_heartbeat(
         to=server_ip, port=network_params.SERVER_RECV_PORT)
     # Replay all non-ack messages

@@ -27,6 +27,7 @@ def heartbeat_from_backup_handler(received_msg):
     print("sent heartbeat to backup")
     # Send heartbeat message to backup server
     # Creating new process to wait and reply to heartbeat messages
+    
     process_wait_send_heartbeat_to_backup = mp.Process(
         target=messageutils.wait_send_heartbeat_to_backup,
         args=(received_msg.sender, network_params.BACKUP_RECV_PORT, None,)

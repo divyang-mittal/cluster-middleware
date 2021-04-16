@@ -172,7 +172,9 @@ def main():
         if msg.msg_type == 'I_AM_NEW_SERVER':
             # Primary server crash detected by backup server
             # switch primary and backup server ips
+            print('backup is taking over')
             server_ip, backup_ip = msg.sender, None
+            print(server_ip)
             time.sleep(SERVER_CHANGE_WAIT_TIME)
             message_handlers.server_crash_msg_handler(
                 # shared_submitted_jobs_array,

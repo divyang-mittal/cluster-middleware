@@ -175,6 +175,7 @@ def main():
 
         compute_nodes = server_state.compute_nodes
         for node_id, _ in compute_nodes.items():
+            print(node_id)
             node_last_seen[node_id] = time.time()
 
         running_jobs = server_state.running_jobs
