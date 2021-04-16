@@ -115,9 +115,9 @@ def execute_job(current_job,
     cmd = shlex.split(executable)
     print(cmd)
     try:
-        soft, hard = resource.getrlimit(resource.RLIMIT_VMEM)
+        soft, hard = resource.getrlimit(resource.RLIMIT_AS)
         maxsize = current_job.max_memory * 1024 * 1024
-        resource.setrlimit(resource.RLIMIT_VMEM, (maxsize, hard))
+        resource.setrlimit(resource.RLIMIT_AS, (maxsize, hard))
         print('Running for : ', current_job.time_required)
         subprocess.run(cmd, stdout=out_file, stderr=err_file, timeout=current_job.time_required)
 
