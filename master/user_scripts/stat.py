@@ -56,7 +56,7 @@ while(True):
 			print_stats(msg.content)
 			# print(msg.content)
 
-		else if(msg.msg_type == "ERR_STATS"):
+		elif(msg.msg_type == "ERR_STATS"):
 			print('Error will recovering stats')
 
 		break

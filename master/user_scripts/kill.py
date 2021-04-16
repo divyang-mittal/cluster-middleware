@@ -43,7 +43,8 @@ while(True):
 			print("Job Killed \n")
 			print("Job Id : " + str(msg.content))
 
-		else if(msg.msg_type == 'ERR_JOB_KILL'):
+
+		elif(msg.msg_type == 'ERR_JOB_KILL'):
 			print("Job could not be killed \n")
 		
 		break

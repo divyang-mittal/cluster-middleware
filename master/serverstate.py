@@ -39,10 +39,10 @@ class ServerState(object):
         # Convert from priority queue class JobQueue to a simple list
         self.state_order = state_order
         self.job_receipt_id = job_receipt_id
-        self.job_queue = []
-        while not job_queue.empty():
-            job = job_queue.get()
-            self.job_queue.append(job)
+        self.job_queue = job_queue
+        # while not job_queue.empty():
+        #     job = job_queue.get()
+        #     self.job_queue.append(job)
 
         self.compute_nodes = compute_nodes
         self.running_jobs = running_jobs

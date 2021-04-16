@@ -190,7 +190,8 @@ def job_submit_handler(job_queue,
         )
 
     #Update backup server with changed server state data structures
-    copy_job_queue = copy.copy(job_queue)
+    copy_job_queue = copy.copy(job_queue.queue)
+
     server_state = serverstate.ServerState(
         compute_nodes=compute_nodes,
         running_jobs=running_jobs,
@@ -208,6 +209,7 @@ def job_submit_handler(job_queue,
             to=backup_ip,
             msg_socket=None,
             port=network_params.BACKUP_RECV_PORT)
+
 
     messageutils.make_and_send_message(
         msg_type='ACK_JOB_SUBMIT',
@@ -370,7 +372,9 @@ def schedule_and_send_job(job,
     # node_for_job = "127.0.0.1"
     # Job cannot be scheduled at the moment
     if node_for_job is None:
+        print('Queued')
         job_queue.put(job)
+        print(job_queue.queue)
         return
 
     # Response time records
@@ -496,6 +500,8 @@ def stats_job_handler(
             jobs_status.append(temp_job_status)
 
     temp_queue = job_queue.queue
+    print(temp_queue)
+    print(job_queue.queue)
 
     for x in temp_queue:
         cur_job = x[1]
