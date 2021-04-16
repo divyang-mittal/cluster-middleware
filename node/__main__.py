@@ -169,21 +169,21 @@ def main():
         #     message_handlers.ack_job_submit_msg_handler(
         #         msg, shared_acknowledged_jobs_array)
 
-        if msg.sender == backup_ip and msg.msg_type == 'I_AM_NEW_SERVER':
+        if msg.msg_type == 'I_AM_NEW_SERVER':
             # Primary server crash detected by backup server
             # switch primary and backup server ips
-            server_ip, backup_ip = backup_ip, server_ip
+            server_ip, backup_ip = msg.sender, None
             time.sleep(SERVER_CHANGE_WAIT_TIME)
             message_handlers.server_crash_msg_handler(
-                shared_submitted_jobs_array,
-                shared_acknowledged_jobs_array,
-                executed_jobs_receipt_ids,
-                ack_executed_jobs_receipt_ids,
+                # shared_submitted_jobs_array,
+                # shared_acknowledged_jobs_array,
+                # executed_jobs_receipt_ids,
+                # ack_executed_jobs_receipt_ids,
                 server_ip)
 
-        elif msg.sender == backup_ip:
+ #       elif msg.sender == backup_ip:
             # Old message from a server detected to have crashed, ignore
-            continue
+  #          continue
         elif msg.msg_type == 'HEARTBEAT':
             # Removing pycharm's annoying unused warning for shared variable
             # noinspection PyUnusedLocal

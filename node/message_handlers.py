@@ -295,24 +295,27 @@ def ack_executed_job_msg_handler(msg, ack_executed_jobs_receipt_ids):
     ack_executed_jobs_receipt_ids[job_receipt_id] = 0
 
 
-# def server_crash_msg_handler(shared_submitted_jobs_array,
-#                              shared_acknowledged_jobs_array,
-#                              executed_jobs_receipt_ids,
-#                              ack_executed_jobs_receipt_ids, server_ip):
-#     """Handle a message recvd from server fault detecting child process about
-#     an assumed server crash at server_ip
+def server_crash_msg_handler(
+                            #  shared_submitted_jobs_array,
+                            #  shared_acknowledged_jobs_array,
+                            #  executed_jobs_receipt_ids,
+                            #  ack_executed_jobs_receipt_ids
+                            server_ip
+                             ):
+    """Handle a message recvd from server fault detecting child process about
+    an assumed server crash at server_ip
 
-#     :param shared_submitted_jobs_array: mp.Array with type int,
-#         contains submission id of jobs
-#     :param shared_acknowledged_jobs_array: mp.Array, acknowledged submitted jobs
-#     :param executed_jobs_receipt_ids: set, receipt ids of executed jobs
-#     :param ack_executed_jobs_receipt_ids: set, receipt ids of acknowledged
-#         executed jobs
-#     :param server_ip: str, ip address of server
-#     """
+    :param shared_submitted_jobs_array: mp.Array with type int,
+        contains submission id of jobs
+    :param shared_acknowledged_jobs_array: mp.Array, acknowledged submitted jobs
+    :param executed_jobs_receipt_ids: set, receipt ids of executed jobs
+    :param ack_executed_jobs_receipt_ids: set, receipt ids of acknowledged
+        executed jobs
+    :param server_ip: str, ip address of server
+    """
     # send first heartbeat to new primary server
-    # messageutils.send_heartbeat(
-    #     to=server_ip, port=network_params.COMPUTE_NODE_SEND_PORT)
+    messageutils.send_heartbeat(
+        to=server_ip, port=network_params.SERVER_RECV_PORT)
     # Replay all non-ack messages
     # replay_non_ack_msgs(shared_submitted_jobs_array,
     #                     shared_acknowledged_jobs_array,
