@@ -88,7 +88,7 @@ def sigint_handler(signum=signal.SIGINT, frame=None):
         process.send_signal(signal.SIGTERM)
     sys.exit(0)
 
-server_ip = network_params.SERVER_IP
+
 
 def main():
     """Get server ip, connect with server, listen for messages, submit jobs
@@ -108,7 +108,7 @@ def main():
     args = vars(parser.parse_args())
 
     # Obtain server and backup ip's from the arguments
-    #server_ip = network_params.SERVER_IP
+    server_ip = network_params.SERVER_IP
     #backup_ip = args['backupip']
     self_ip = args['selfip']
 
@@ -142,11 +142,13 @@ def main():
     # Send first heartbeat to server
     messageutils.send_heartbeat(
         to=server_ip, port=network_params.SERVER_RECV_PORT)
+    
+    debug = server_ip
 
     while True:
         # Accept an incoming connection
         connection, client_address = msg_socket.accept()
-
+        server_ip = debug
         # Receive the data
         data_list = []
         data = connection.recv(network_params.BUFFER_SIZE)
@@ -173,9 +175,10 @@ def main():
         if msg.msg_type == 'I_AM_NEW_SERVER':
             # Primary server crash detected by backup server
             # switch primary and backup server ips
-            global server_ip
+            
             print('backup is taking over')
             server_ip, backup_ip = msg.sender, None
+            debug = msg.sender
             print(server_ip)
             time.sleep(SERVER_CHANGE_WAIT_TIME)
             message_handlers.server_crash_msg_handler(
