@@ -1,62 +1,3 @@
-"""Script to set up and run central server.
-
-    Responsible for communication with computing nodes, primary backup, job
-    scheduling, load balancing, job-node matchmaking decisions etc.
-
-    Messages received from the node:
-        - JOB_SUBMIT: The node sends the job to be submitted for execution
-            in this message along with the executable file. The server tries to
-            schedule the job if possible, else adds it to the job queue.
-
-        - HEARTBEAT: The server(main) receives the cpu-time and memory of the
-            node through this heartbeat and also detects that the node is alive.
-            It responds with a heartbeat message of its own through a child
-            process.
-
-        - EXECUTED_JOB: This message tells the server that the job given to the
-            node has either been completed or preempted(with the help of a
-            completed flag). If the job has been completed, the server removes
-            it from the job_queue and informs the node which has submitted the
-            job. Also, it tries to schedule the jobs in the job queue. On the
-            other hand, if the job is a preempted one, the server tries to
-            schedule it again.
-
-        - ACK_SUBMITTED_JOB_COMPLETION: The server ignores this.
-
-        - ACK_JOB_EXEC: The server ignores this.
-
-        - ACK_JOB_EXEC_PREEMPT: The server ignores this.
-
-    Messages sent to node:
-        - HEARTBEAT: Server sends this message in response to HEARTBEAT message
-            by node. A delay has been set in the server's response, so that
-            heartbeat messages do not congest the network.
-
-        - ACK_JOB_SUBMIT: Server sends this message on receiving a JOB_SUBMIT
-            message from the node. Includes job's submission id in
-            message's content field.
-
-        - ACK_EXECUTED_JOB: Sent in response to EXECUTED_JOB message.
-
-        - JOB_EXEC: Sent by server requesting execution of a job on the node.
-            Has job object in content, and executable in file field.
-
-        - JOB_PREEMPT_EXEC: Sent by server requesting preemption of an executing
-            job, and execution of a new job. Has (new_job,
-            job_to_preempt receipt id) in content, and executable file of new
-            job in file.
-
-        - SUBMITTED_JOB_COMPLETION: Server, on receiving EXECUTED_JOB message
-            from a node, checks job's 'completed' attribute, and if True,
-            sends SUBMITTED_JOB_COMPLETION to submitting node.
-        
-        Messages sent to backup:
-        - BACKUP_UPDATE: Sent whenever server state data structures are updated.
-            Contains latest ServerState.
-        - HEARTBEAT: This is sent in response to the heartbeat of the backup.
-            This is used by the backup to detect server crash and take over.
-"""
-
 import argparse
 import multiprocessing as mp
 import os
@@ -96,15 +37,6 @@ def print_welcome_message():
 
 
 def detect_node_crash(node_last_seen, server_ip):
-    """Detects node crashes.
-
-    Run as a child process, periodically checking last heartbeat times for each
-    computing node.
-
-    :param node_last_seen: Dictionary with time when last heartbeat was
-        received from node {node_id: last_seen_time}
-    :param server_ip: String with IP address of server (this node).
-    """
 
     while True:
         time.sleep(CRASH_DETECTOR_SLEEP_TIME)
@@ -134,17 +66,6 @@ def main():
     # """Get server ip, backup ip, listen for messages and manage jobs.
     # """
     parser = argparse.ArgumentParser(description='Set up central server.')
-    # parser.add_argument(
-    #     '--server-ip',
-    #     required=True,
-    #     help='IP address of central server (this node).')
-    # parser.add_argument(
-    #     '--backup-ip',
-    #     required=True,
-    #     help='IP address of primary backup server.')
-    # args = parser.parse_args()
-    # backup_ip = args.backup_ip
-    # server_ip = args.server_ip
     
     backup_ip = None 
 
@@ -169,6 +90,7 @@ def main():
     # Initialize current server state from backup snapshot
     # Used in case primary backup is taking over as central server
     if os.path.isfile(BACKUP_SERVER_STATE_PATH):
+        server_ip = network_params.BACKUP_NODE_IP
         with open(BACKUP_SERVER_STATE_PATH, 'rb') as backup_server_state:
             server_state = pickle.load(backup_server_state)
 
@@ -229,13 +151,6 @@ def main():
                     msg = pickle.loads(data)
                     assert isinstance(msg, message.Message), \
                         "Received object on socket not of type Message."
-
-                    # print("XYX")
-                    # print(msg.sender)
-                    # print("XYX")
-                    # print(msg.file)
-                    # print("XYZ")
-
 
                     if msg.msg_type == 'HEARTBEAT_BACKUP':
                         backup_ip = msg.sender
