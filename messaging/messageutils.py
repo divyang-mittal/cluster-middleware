@@ -90,6 +90,7 @@ def send_message(msg, to, msg_socket=None, port=PORT):
             pass
 
     msg.sender = msg_socket.getsockname()[0]
+    print('Sender: ', msg.sender)
     msg_data = io.BytesIO(pickle.dumps(msg))
 
     try:
