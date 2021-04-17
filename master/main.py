@@ -90,7 +90,7 @@ def main():
     # Initialize current server state from backup snapshot
     # Used in case primary backup is taking over as central server
     if os.path.isfile(BACKUP_SERVER_STATE_PATH):
-        server_ip = network_params.BACKUP_NODE_IP
+        # server_ip = network_params.BACKUP_NODE_IP
         with open(BACKUP_SERVER_STATE_PATH, 'rb') as backup_server_state:
             server_state = pickle.load(backup_server_state)
 
@@ -108,7 +108,7 @@ def main():
             job_queue.put(job)
 
     process_crash_detector = mp.Process(
-        target=detect_node_crash, args=(node_last_seen, server_ip,))
+        target=detect_node_crash, args=(node_last_seen, '127.0.0.1',))
     process_crash_detector.start()
 
 
