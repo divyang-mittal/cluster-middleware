@@ -115,3 +115,5 @@ def execute_job(current_job,
             file_path=None, to=self_ip,
             msg_socket=None,
             port=network_params.COMPUTE_NODE_RECV_PORT)
+
+        os._exit(0)

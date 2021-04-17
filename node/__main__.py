@@ -125,7 +125,7 @@ def main():
             # Removing pycharm's annoying unused warning for shared variable
             # noinspection PyUnusedLocal
                 print("HEARTBEAT RECEIVED IN COMPUTE_NODE")
-                print("printing serverip received= "+ str(server_ip))
+                print("serverip when heartbeat received= "+ str(server_ip))
             # shared_last_heartbeat_recv_time.value = \
                 message_handlers.heartbeat_msg_handler(
                     # shared_job_array,
