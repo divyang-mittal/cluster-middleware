@@ -63,7 +63,7 @@ def send_message(msg, to, msg_socket=None, port=PORT):
             # Raised if endpoint is already connected. No action is needed.
             pass
 
-    print(msg_socket)
+    # print(msg_socket)
     msg.sender = msg_socket.getsockname()[0]
     # if msg.sender == '0.0.0.0':
     #     msg.sender = '172.31.47.176'

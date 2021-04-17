@@ -84,7 +84,11 @@ def main():
 
     while True:
         # Accept an incoming connection
+
+        print('before creating new connection', server_ip)
         connection, client_address = msg_socket.accept()
+        print('after creating new connection', server_ip)
+        
         server_ip = debug
         # Receive the data
         data_list = []
@@ -98,16 +102,6 @@ def main():
         assert isinstance(
             msg, message.Message), "Received object on socket not of type " \
                                    "Message."
-        
-        # print(msg)
-        # print("MSG CONTENT : " + str(msg.content.s))
-        # print("MSG TYPE : " + str(msg.msg_type))
-        # print("MSG FILE : " + str(msg.file))
-
-
-        # elif msg.msg_type == 'ACK_JOB_SUBMIT':
-        #     message_handlers.ack_job_submit_msg_handler(
-        #         msg, shared_acknowledged_jobs_array)
 
         if msg.msg_type == 'I_AM_NEW_SERVER':
             # Primary server crash detected by backup server
@@ -118,13 +112,10 @@ def main():
             debug = msg.sender
             print(server_ip)
             time.sleep(SERVER_CHANGE_WAIT_TIME)
-            message_handlers.server_crash_msg_handler(
-                # shared_submitted_jobs_array,
-                # shared_acknowledged_jobs_array,
-                # executed_jobs_receipt_ids,
-                # ack_executed_jobs_receipt_ids,
-                server_ip)
 
+            message_handlers.server_crash_msg_handler(server_ip)
+
+            print('next: ', server_ip)
  #       elif msg.sender == backup_ip:
             # Old message from a server detected to have crashed, ignore
   #          continue
