@@ -51,10 +51,10 @@ def wait_send_heartbeat(to, port):
 def send_message(msg, to, msg_socket=None, port=PORT):
 
     # print(msg_socket)
-    msg.sender = '0.0.0.0'
-    while msg.sender == '0.0.0.0':
+    if msg_socket is None:
 
-        if msg_socket is None:
+        msg.sender = '0.0.0.0'
+        while msg.sender == '0.0.0.0':
             msg_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
             try:
@@ -66,8 +66,7 @@ def send_message(msg, to, msg_socket=None, port=PORT):
                 # Raised if endpoint is already connected. No action is needed.
                 pass
 
-        print(msg_socket)
-        msg.sender = msg_socket.getsockname()[0]
+            msg.sender = msg_socket.getsockname()[0]
         
 
     print('Sender: ', msg.sender)
