@@ -7,12 +7,6 @@ from . import job
 
 
 def parse_jobfile(jobfile_name):
-    """Parse job text file and return key-value pairs.
-
-    :param jobfile_name: str, address of the file
-    :return: dict, containing key-value pairs of job fields
-    :raises: ValueError: Invalid job description file
-    """
 
     job_description_dict = {
         'name': 'defaultJob',
@@ -45,11 +39,6 @@ def parse_jobfile(jobfile_name):
 
 
 def make_job(jobfile_name):
-    """Make a job object with attributes as given in the jobfile.
-
-    :param jobfile_name: str, address of jobfile
-    :return: job object
-    """
     job_description_dict = parse_jobfile(jobfile_name)
     created_job = job.Job(**job_description_dict)
     return created_job

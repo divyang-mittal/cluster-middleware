@@ -1,31 +1,3 @@
-"""Script to set up and run primary backup.
-
-    Responsible for communication with central server, detecting server failure,
-    maintaining backup of server states, and taking over if server fails.
-
-    Messages received from central server:
-        - HEARTBEAT: Tells the primary backup that the central server is alive.
-
-        - BACKUP_UPDATE: Includes ServerState object with state of server to be
-            backed up and used in case of central server crash.
-
-    Messages received from its own child process:
-        - SERVER_CRASH: The backup main receives it from a child process after
-            the child detects the central server to have crashed. Backup takes
-            over, informs all compute nodes about the new server, and restores
-            server state on current node from ServerState received in last
-            heartbeat message.
-
-    Messages sent to central server:
-        - HEARTBEAT: Just tells the node that the backup is alive. Sent to the
-            central server in response to its own heartbeat message.
-
-    Messages sent to computing nodes:
-        - I_AM_NEW_SERVER: Sent to all nodes when the backup detects that the
-            original central server has crashed, and backup takes over. Backup
-            process exits, and starts server process on current node.
-"""
-
 import argparse
 import multiprocessing as mp
 import pickle
@@ -43,15 +15,6 @@ CRASH_DETECTOR_SLEEP_TIME = 5  # seconds
 
 
 def detect_server_crash(server_last_seen_time, backup_ip):
-    """Detects central server crashes.
-
-    Run as a child process, periodically checking last heartbeat times for each
-    computing node.
-
-    :param server_last_seen_time: Float with time when last heartbeat was
-        received from central server.
-    :param backup_ip: String with IP address of backup server (this node).
-    """
 
     while True:
         time.sleep(CRASH_DETECTOR_SLEEP_TIME)
@@ -61,9 +24,6 @@ def detect_server_crash(server_last_seen_time, backup_ip):
         time_since_last_heartbeat = current_time - server_last_seen_time.value
         if time_since_last_heartbeat > CRASH_ASSUMPTION_TIME:
             print('NODE CRASHED BACKUP')
-
-            # Make and send a crash message to main process which is listening
-            # on SERVER_RECV_PORT for incoming messages.
             messageutils.make_and_send_message(msg_type='SERVER_CRASH',
                                                content=None,
                                                file_path=None,

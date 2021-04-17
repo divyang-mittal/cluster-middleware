@@ -37,7 +37,7 @@ while(True):
 		listen_address = ('', network_params.STATS_RECV_PORT)
 		listen_socket.bind(listen_address)
 		listen_socket.listen(5)
-		messageutils.make_and_send_message(msg_type = "STATS_JOB" ,content=None, to = network_params.SERVER_IP, port = network_params.SERVER_RECV_PORT, file_path =None, msg_socket=None)
+		messageutils.make_and_send_message(msg_type = "STATS_JOB" ,content=None, to = '127.0.0.1', port = network_params.SERVER_RECV_PORT, file_path =None, msg_socket=None)
 		connection, client_address = listen_socket.accept()
 
 		data_list = []

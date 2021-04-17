@@ -1,61 +1,3 @@
-"""Job submission handler, responsible for communication with central server,
-    and job submitter.
-
-    Messages sent to server by parent:
-        - JOB_SUBMIT: a job is received on the submission interface, which
-            prepares job files, and sets a flag in the shared memory.
-            This flag is detected when this main process receives any kind of
-            message, and then JOB_SUBMIT is sent to server, with job object
-            in content field and executable file in file field of the message.
-        
-        - HEARTBEAT: When this main process starts, it sends first heartbeat
-            to server. After that, it responds with a heartbeat message to
-            the server immediately after receiving a heartbeat from server.
-            Content of the message contains current system resources' status.
-            
-        - EXECUTED_JOB: Sent to server on either completing a job execution,
-            or on receiving a JOB_PREEMPT_EXEC message from server,
-            this main process carries out  the preemption procedure, and
-            sends an EXECUTED_JOB message to the server, with updated job object
-            (job.run_time, job.execution_list, job.completed are updated)
-            in the content field.
-            On receiving a JOB_PREEMPT_EXEC for an already preempted job, if
-            ACK_EXECUTED_JOB has been received for that job, then the
-            duplicate JOB_PREEMPT_EXEC is ignored,
-            otherwise EXECUTED_JOB message is sent again.
-
-        - ACK_SUBMITTED_JOB_COMPLETION: Sent on receiving
-            SUBMITTED_JOB_COMPLETION from server. Content field has receipt id.
-
-        - ACK_JOB_EXEC: Sent on receiving JOB_EXEC from server.
-
-        - ACK_JOB_PREEMPT_EXEC: Sent on receiving JOB_PREEMPT_EXEC from server.
-
-
-    Messages received from server:
-        - HEARTBEAT: Server sends this message in response to HEARTBEAT message
-            by node. A delay can/should be there in server's response, so that
-            heartbeat messages do not congest the network.
-
-        - ACK_JOB_SUBMIT: Server sends this message on receiving a JOB_SUBMIT
-            message from the node. Should include job's submission id in
-            message's content field.
-
-        - ACK_EXECUTED_JOB: Sent in response to EXECUTED_JOB message
-
-        - JOB_EXEC: Sent by server requesting execution of a job on the node.
-            Should have job object in content, and executable in file field.
-
-        - JOB_PREEMPT_EXEC: Sent by server requesting preemption of an executing
-            job, and execution of a new job. Should have (new_job,
-            job_to_preempt receipt id) in content, and executable file of new
-            job in file.
-
-        - SUBMITTED_JOB_COMPLETION: Server, on receiving EXECUTED_JOB message
-            from a node, checks job's 'completed' attribute, and if True,
-            sends SUBMITTED_JOB_COMPLETION to submitting node
-"""
-
 import argparse
 import multiprocessing as mp
 import os.path
@@ -91,12 +33,7 @@ def sigint_handler(signum=signal.SIGINT, frame=None):
 
 
 def main():
-    """Get server ip, connect with server, listen for messages, submit jobs
 
-    Job submission is handled entirely by a forked child process.
-    Job execution is handed partly by this and a forked child process.
-    Heartbeat messages are constantly exchanged.
-    """
     # Begin argument parsing
     parser = argparse.ArgumentParser()
     parser.add_argument("-serverip", help="IP address of central server",

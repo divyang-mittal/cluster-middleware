@@ -1,13 +1,3 @@
-"""Message handlers for all messages received at server.
-
-Includes handlers for:
-    * Heartbeat message from primary backup.
-    * Heartbeat message from client/compute nodes.
-    * Job submitted by node to server for scheduling.
-    * Executed job returned to server by node after running.
-    * Notification about node crashes.
-"""
-
 import copy
 import multiprocessing as mp
 import time
@@ -21,9 +11,7 @@ from . import serverstate
 
 
 def heartbeat_from_backup_handler(received_msg):
-    """Handler function for HEARTBEAT messages from backup server..
-    :param received_msg: message, received message.
-    """
+
     print("sent heartbeat to backup")
     # Send heartbeat message to backup server
     # Creating new process to wait and reply to heartbeat messages
@@ -45,23 +33,7 @@ def heartbeat_handler(compute_nodes,
                     received_msg, 
                     job_receipt_id,
                     job_running_node):
-    """Handler function for HEARTBEAT messages from compute nodes.
-    :param compute_nodes: Dictionary with cpu usage and memory of each node
-        {node_id: status}
-    :param node_last_seen: Dictionary with time when last heartbeat was
-        received from node {node_id: last_seen_time}
-    :param running_jobs: Dictionary with jobs running on each system
-        {node_id: [list of jobs]}
-    :param job_queue: Priority queue for jobs that could not be scheduled.
-    :param job_sender: Dictionary with initial sender of jobs {job_id: sender}
-    :param job_executable: Dictionary with job executables {job_id: executable}
-    :param backup_ip: String with IP address of backup server.
-    :param server_state_order: Integer with sequence ordering number of
-        ServerState sent to backup server.
-    :param received_msg: message, received message.
-    :param job_receipt_id:
-    """
-
+   
     # Node has recovered and needs to be added back to node data structures
     # Update compute node available resources
     if received_msg.sender not in compute_nodes:
@@ -136,45 +108,13 @@ def job_submit_handler(job_queue,
                         backup_ip,
                         server_state_order
                 ):
-    """Handler function for JOB_SUBMIT messages.
 
-    :param job_queue: Priority queue for jobs that could not be scheduled.
-    :param compute_nodes: Dictionary with cpu usage and memory of each node
-        {node_id: status}
-    :param running_jobs: Dictionary with jobs running on each system
-        {node_id: [list of jobs]}
-    :param job_sender: Dictionary with initial sender of jobs {job_id: sender}
-    :param job_executable: Dictionary with job executables {job_id: executable}
-    :param received_msg: message, received message.
-    :param job_receipt_id: int, Unique ID given to the job by server.
-    :param backup_ip: String with IP address of backup server.
-    :param server_state_order: Integer with sequence ordering number of
-        ServerState sent to backup server.
-    """
-    # print(received_msg.sender)
-    # print("XYXXYX")
     job = received_msg.content
-    # print(job)
     job.sender = received_msg.sender
 
     # Response time records
     if job.receive_time is None:
         job.receive_time = time.time()
-
-    # print(job)
-
-    # all_running_jobs = set(sum(running_jobs.values(), []))
-    # if job in all_running_jobs:
-    #     # Executed job was not in running jobs, ie. message is from double
-    #     # job scheduling due to server crash. Send ACK and ignore message.
-    #     messageutils.make_and_send_message(
-    #         msg_type='ACK_JOB_SUBMIT',
-    #         content=job.submission_id,
-    #         file_path=None,
-    #         to=received_msg.sender,
-    #         port=network_params.SERVER_SEND_PORT,
-    #         msg_socket=None)
-    #     return
 
     job.receipt_id = job_receipt_id
     job_sender[job_receipt_id] = received_msg.sender
@@ -230,25 +170,6 @@ def executed_job_handler(job_queue,
                          job_receipt_id,
                          received_msg,
                          job_running_node):
-    """Handler function for EXECUTED_JOB messages.
-
-    If executed job is complete, tries to schedule all jobs waiting in the
-    job_queue. If executed job was preempted, attempts to reschedule it.
-
-    :param job_queue: Priority queue for jobs that could not be scheduled.
-    :param compute_nodes: Dictionary with cpu usage and memory of each node
-        {node_id: status}
-    :param running_jobs: Dictionary with jobs running on each system
-        {node_id: [list of jobs]}
-    :param job_sender: Dictionary with initial sender of jobs {job_id: sender}
-    :param job_executable: Dictionary with job executables {job_id: executable}
-    :param server_state_order: Integer with sequence ordering number of
-        ServerState sent to backup server.
-    :param backup_ip: String with IP address of backup server.
-    :param received_msg: message, received message.
-    :returns job_queue: Priority queue for jobs that have not been scheduled.
-    :param job_receipt_id:
-    """
 
     executed_job = received_msg.content
     try:
@@ -267,14 +188,6 @@ def executed_job_handler(job_queue,
         return job_queue
 
     if executed_job.completed:
-
-        # Send completion result to initial node where job was created.
-        # completed_job_msg = message.Message(
-        #     msg_type='SUBMITTED_JOB_COMPLETION', content=executed_job)
-        # messageutils.send_message(
-        #     msg=completed_job_msg,
-        #     to=job_sender[executed_job.receipt_id],
-        #     port=)
 
         del job_sender[executed_job.receipt_id]
         del job_executable[executed_job.receipt_id]
@@ -353,19 +266,6 @@ def schedule_and_send_job(job,
                           running_jobs,
                           job_running_node
                         ):
-    """Schedule and send job to target node for execution.
-
-    Tries to schedule job, and sends to selected computing node. If scheduling
-    not possible, adds to job queue for scheduling later.
-
-    :param job: Job object for job to be scheduled.
-    :param executable: Bytes for job executable.
-    :param job_queue: Priority queue for jobs that could not be scheduled.
-    :param compute_nodes: Dictionary with cpu usage and memory of each node
-        {node_id: status}
-    :param running_jobs: Dictionary with jobs running on each system
-        {node_id: [list of jobs]}
-    """
 
     node_for_job, preempt_job = matchmaking.matchmaking(
         job=job, compute_nodes=compute_nodes, running_jobs=running_jobs)
@@ -538,20 +438,6 @@ def node_crash_handler(compute_nodes,
                        node_last_seen,
                        received_msg,
                        job_running_node):
-    """Handler function for NODE_CRASH messages.
-    Message received from child process of server. Reschedules all jobs that
-    were being executed on crashed nodes. Removes crashed nodes from the
-    compute_nodes dictionary.
-    :param job_queue: Priority queue for jobs that could not be scheduled.
-    :param compute_nodes: Dictionary with cpu usage and memory of each node
-        {node_id: status}
-    :param running_jobs: Dictionary with jobs running on each system
-        {node_id: [list of jobs]}
-    :param job_executable: Dictionary with job executables {job_id: executable}
-    :param node_last_seen: Dictionary with time when last heartbeat was
-        received from node {node_id: last_seen_time}
-    :param received_msg: message, received message.
-    """
 
     crashed_nodes = received_msg.content
     pre_crash_running_jobs = copy.deepcopy(running_jobs)
