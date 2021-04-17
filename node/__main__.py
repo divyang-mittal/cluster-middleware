@@ -6,6 +6,7 @@ import socket
 import signal
 import sys
 import time
+import copy
 import psutil
 from ctypes import c_bool
 
@@ -80,16 +81,16 @@ def main():
     messageutils.send_heartbeat(
         to=server_ip, port=network_params.SERVER_RECV_PORT)
     
-    debug = server_ip
+    debug = copy.deepcopy(server_ip)
 
     while True:
         # Accept an incoming connection
 
-        print('before creating new connection', server_ip)
+        print('before creating new connection', server_ip, debug)
         connection, client_address = msg_socket.accept()
-        print('after creating new connection', server_ip)
+        print('after creating new connection', server_ip, debug)
         
-        server_ip = debug
+        server_ip = copy.deepcopy(debug)
         # Receive the data
         data_list = []
         data = connection.recv(network_params.BUFFER_SIZE)
@@ -109,16 +110,17 @@ def main():
             
             print('backup is taking over')
             server_ip, backup_ip = msg.sender, None
-            debug = msg.sender
+            debug = copy.deepcopy(msg.sender)
             print(server_ip)
             time.sleep(SERVER_CHANGE_WAIT_TIME)
 
             message_handlers.server_crash_msg_handler(server_ip)
 
             print('next: ', server_ip)
- #       elif msg.sender == backup_ip:
-            # Old message from a server detected to have crashed, ignore
-  #          continue
+
+        # elif msg.sender == backup_ip:
+        #     # Old message from a server detected to have crashed, ignore
+        #    continue
         elif msg.msg_type == 'HEARTBEAT':
             # Removing pycharm's annoying unused warning for shared variable
             # noinspection PyUnusedLocal
