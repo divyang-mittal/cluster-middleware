@@ -108,7 +108,7 @@ def main():
             job_queue.put(job)
 
     process_crash_detector = mp.Process(
-        target=detect_node_crash, args=(node_last_seen, network_params.SERVER_IP,))
+        target=detect_node_crash, args=(node_last_seen, server_ip,))
     process_crash_detector.start()
 
 

@@ -382,7 +382,7 @@ def ack_job_kill_handler(
                     ):
     ack_job_kill_msg = message.Message(
         msg_type='ACK_JOB_KILL_SUCCESS', content=content )                
-    messageutils.send_message(msg=ack_job_kill_msg, to=network_params.SERVER_IP, port=network_params.KILL_RECV_PORT)
+    messageutils.send_message(msg=ack_job_kill_msg, to='127.0.0.1', port=network_params.KILL_RECV_PORT)
 
 
 def stats_job_handler(
@@ -429,7 +429,7 @@ def stats_job_handler(
 
     ack_stats_result_msg = message.Message(
         msg_type='ACK_STATS_RESULT_MSG', content=jobs_status)
-    messageutils.send_message(msg=ack_stats_result_msg, to=network_params.SERVER_IP, port=network_params.STATS_RECV_PORT)
+    messageutils.send_message(msg=ack_stats_result_msg, to='127.0.0.1', port=network_params.STATS_RECV_PORT)
 
 def node_crash_handler(compute_nodes,
                        running_jobs,

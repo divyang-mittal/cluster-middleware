@@ -52,22 +52,21 @@ def send_message(msg, to, msg_socket=None, port=PORT):
 
     # print(msg_socket)
     if msg_socket is None:
+        msg_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-        msg.sender = '0.0.0.0'
-        while msg.sender == '0.0.0.0':
-            msg_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            print('to:', to)
+            print('port:', port)
+            msg_socket.connect((to, port))
 
-            try:
-                print('to:', to)
-                print('port:', port)
-                msg_socket.connect((to, port))
+        except OSError:
+            # Raised if endpoint is already connected. No action is needed.
+            pass
 
-            except OSError:
-                # Raised if endpoint is already connected. No action is needed.
-                pass
-
-            msg.sender = msg_socket.getsockname()[0]
-        
+    print(msg_socket)
+    msg.sender = msg_socket.getsockname()[0]
+    # if msg.sender == '0.0.0.0':
+    #     msg.sender = '172.31.47.176'
 
     print('Sender: ', msg.sender)
     msg_data = io.BytesIO(pickle.dumps(msg))
