@@ -1,1 +1,0 @@
-python -m cluster-middleware.node.__main__ -serverip 127.0.0.1 -selfip 127.0.0.1

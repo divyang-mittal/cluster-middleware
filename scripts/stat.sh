@@ -1,1 +1,1 @@
-python -m cluster-middleware.master.user_scripts.stat
+python3 -m cluster-middleware.master.user_scripts.stat

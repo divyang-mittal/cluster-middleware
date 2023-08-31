@@ -1,15 +1,25 @@
 ### for running master
-python -m cluster-middleware.master.main
+python3 -m cluster-middleware.master.main
 
 ### for running submit.py
-python -m cluster-middleware.master.user_scripts.submit --JobPath /home/fenris/Documents/8th_semester/DistributedSystems/termProject/FinalOne/cluster-middleware/master/job/sample_jobfile
+python3 -m cluster-middleware.master.user_scripts.submit --JobPath /home/ubuntu/cluster-middleware/master/job/sample_jobs/sample_jobfile2
 
 
 ## for running compute node
-python -m cluster-middleware.node.__main__ -serverip 127.0.0.1 -selfip 127.0.0.1
+python3 -m cluster-middleware.node.__main__ -serverip 127.0.0.1 -selfip 127.0.0.1
 
 
 ## for killing 
-sudo kill -9 `sudo lsof -t -i:9001`
+sudo kill -9 `sudo lsof -t -i:5007`
 
-python -m cluster-middleware.master.user_scripts.submit --Kill 1
+python3 -m cluster-middleware.master.user_scripts.submit --Kill 1
+
+(backupnode)
+ssh -i awsD.pem ubuntu@52.66.28.8   
+
+(masternode)
+ssh -i awsD.pem ubuntu@52.66.150.21 
+
+(computenode)
+ssh -i awsD.pem ubuntu@65.0.31.113
+ssh -i awsD.pem ubuntu@13.233.33.181 

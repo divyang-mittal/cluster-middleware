@@ -1,1 +1,1 @@
-python -m cluster-middleware.master.main
+python3 -m cluster-middleware.master.main

@@ -9,21 +9,6 @@ IDLE_MACHINE_JOB_COUNT = 4
 
 
 def matchmaking(job, compute_nodes, running_jobs):
-    """Matchmaking algorithm to pick best compute node for a job.
-
-    First find candidate machines (min requirement of memory and CPU).
-    If a candidate is idle, order by max memory.
-    If no idle candidate, order by CPU usage.
-    If CPU usage of all candidates > 80%, need to preempt.
-
-    :param job: The job to be scheduled
-    :param compute_nodes: Dictionary with cpu usage and memory of each node
-        {node_id: status}
-    :param running_jobs: Dictionary with jobs running on each system
-        {node_id: [list of jobs]}
-    :return: (node, job). The node where this job has to be scheduled, and also
-        the job that is to be preempted (if any)
-    """
 
     candidates = []
     best_candidate = None

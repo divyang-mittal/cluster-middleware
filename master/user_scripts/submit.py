@@ -24,7 +24,7 @@ while(True):
 		listen_socket.bind(listen_address)
 		listen_socket.listen(5)
 		
-		messageutils.send_message_with_file_path(msg_type = "JOB_SUBMIT", file_path = args.JobPath, to = network_params.SERVER_IP, port = network_params.SERVER_RECV_PORT)
+		messageutils.send_message_with_file_path(msg_type = "JOB_SUBMIT", file_path = args.JobPath, to = '127.0.0.1', port = network_params.SERVER_RECV_PORT)
 		connection, client_address = listen_socket.accept()
 
 		data_list = []
@@ -40,7 +40,11 @@ while(True):
 
 		if(msg.msg_type == 'ACK_JOB_SUBMIT'):
 			print("JOB ID: "+ str(msg.content))
-			break
+
+		elif(msg.msg_type == 'ERR_JOB_SUBMIT'):
+			print('Job submit unsuccessful')
+
+		break
 
 
 	except BrokenPipeError:

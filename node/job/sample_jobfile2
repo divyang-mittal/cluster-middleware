@@ -1,7 +1,7 @@
 name: myjob2
-executable: nvidia-smi
+executable: g++ /home/ubuntu/cluster-middleware/untitled.cpp && /home/ubuntu/cluster-middleware/a.out
 priority: 10
 time_required: 35
-min_memory: 100
+min_memory: 1
 min_cores: 1
-max_memory: 500
+max_memory: 5

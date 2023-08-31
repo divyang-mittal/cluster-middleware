@@ -23,9 +23,8 @@ while(True):
 		listen_address = ('', network_params.KILL_RECV_PORT)
 		listen_socket.bind(listen_address)
 		listen_socket.listen(5)
-		messageutils.make_and_send_message(msg_type = "KILL_JOB" ,content = args.Kill, to = network_params.SERVER_IP, port = network_params.SERVER_RECV_PORT, file_path =None, msg_socket=None)
- 		
-		
+		messageutils.make_and_send_message(msg_type = "KILL_JOB" ,content = args.Kill, to = '127.0.0.1', port = network_params.SERVER_RECV_PORT, file_path =None, msg_socket=None)
+		print('here')
 		connection, client_address = listen_socket.accept()
 
 		data_list = []
@@ -42,6 +41,10 @@ while(True):
 		if(msg.msg_type == 'ACK_JOB_KILL_SUCCESS'):
 			print("Job Killed \n")
 			print("Job Id : " + str(msg.content))
+
+
+		elif(msg.msg_type == 'ERR_JOB_KILL'):
+			print("Job could not be killed \n")
 		
 		break
 

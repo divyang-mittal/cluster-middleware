@@ -1,6 +1,3 @@
-"""Custom PriorityQueue implementation for job scheduling queues.
-"""
-
 import queue
 
 

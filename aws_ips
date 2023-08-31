@@ -1,0 +1,18 @@
+https://levelup.gitconnected.com/mount-nfs-on-aws-ec2-using-elastic-file-system-efs-57282d3c27eb
+https://vitux.com/install-nfs-server-and-client-on-ubuntu/
+
+[MASTER_NODE IP]
+52.66.150.21
+
+[BACKUP SERVER]
+52.66.28.8 
+
+[COMPUTE_NODE IPS]
+65.0.31.113 
+13.233.33.181
+
+[NFS_IP]
+35.154.147.95
+
+ 7f89789d0c35c22662b023f53b4c0db7339e186f
+ ff8042035e72208c48002c997f498b6f635d8a36
